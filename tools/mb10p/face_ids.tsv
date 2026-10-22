@@ -2,3 +2,6 @@ id	title	project	status
 167210065	Hello	mb10pro/wf_native_hello (EasyFace default ID of the first build)	installed on the band
 193824671	Calc safe	mb10pro/wf_native_calc_safe	installed on the band
 193824672	NativeMgr	mb10pro/wf_native_manager	reserved, not yet installed
+193824673	Calc fix	Calc Safe + formatter fix febb4e9 (hardware test package)	reserved
+193824674	Calc dec	Calc Safe + decimal calculator 8600e41 (hardware test package)	reserved
+193824675	Hello py	Hello Test packed by tools/mb10p/face_pack.py (packer hardware check)	reserved

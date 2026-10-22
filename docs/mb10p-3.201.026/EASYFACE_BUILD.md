@@ -72,3 +72,17 @@ của bạn không được đưa vào repo.
   hệt, không ghi đè nếu khác.
 - Watchface Hello gốc (upstream) chạy `rmmod mb10p_hello` rồi `insmod` khi mở: đừng mở nó trong lúc thử Manager, vì nó sẽ gỡ
   module Hello mà Manager đã nạp (Manager sẽ thấy hàng `lsmod` khác và từ chối REMOVE).
+
+## 5. Đóng gói không cần EasyFace (`tools/mb10p/face_pack.py`) – CHƯA dùng trong pipeline
+
+- Wine + `compile.exe`: chưa thử được — `compile.exe` (bản phát hành EasyFace) không có trong môi trường này và
+  không tải được qua proxy; repo `m0tral/EasyFace` chỉ có README.
+- `face_pack.py PROJECT OUT.face --id <9 chữ số>`: chỉ cho đúng dạng project ở đây (DeviceType 567, một widget Lua
+  `app_lua%2Fmain.lua` 336×480, tệp phẳng trong `app/lua`, preview PNG 8-bit RGB/RGBA 336×480), chỉ dùng thư viện
+  chuẩn Python. Phần header còn lại (bảng mục ở 0xB0, bản ghi kết thúc trỏ tới `main.lua`, preview BGRA alpha thẳng)
+  được suy ra từ hai gói EasyFace v4.23 thật.
+- `python3 tools/mb10p/test_face_pack.py <thư mục chứa Hello.face, Calc_safe.face>`: dựng lại cả hai gói từ nguồn
+  ở commit `6d9ad0f` → **trùng từng byte** với bản EasyFace; thêm 14 kiểm tra (định dạng, tất định, từ chối project lạ).
+- Chưa kiểm: preview RGB (không alpha) so với EasyFace; đồng hồ có nhận gói do Python tạo hay không. Gói thử:
+  `Hello py` (ID `193824675`) = `Hello.face` đã cài thành công, chỉ khác ID/Title. Chỉ đưa packer vào pipeline tự động
+  sau khi gói này được xác nhận trên máy.
