@@ -12,10 +12,11 @@
  *
  * Build with -DMB10P_FW_VERSION=3101043 to target fw_3.101.043 (default)
  *      or -DMB10P_FW_VERSION=3201016 to target fw_3.201.016
+ *      or -DMB10P_FW_VERSION=3201026 to target fw_3.201.026
  *
- * The integers are the full version numbers 3_101_043 / 3_201_016 with
- * digit separators removed (the toolchain's GCC 10.x does not accept the
- * digit-separator form `3_101_043` even under -std=gnu2x).
+ * The integers are the full version numbers 3_101_043 / 3_201_016 /
+ * 3_201_026 with digit separators removed (the toolchain's GCC 10.x does
+ * not accept the digit-separator form `3_101_043` even under -std=gnu2x).
  *
  * Per-version header is free to redefine, add or drop macros as long as
  * the family-header typedefs in <common/nuttx/...>, <common/lvgl/...>,
@@ -30,6 +31,8 @@
 
 #if defined(MB10P_FW_VERSION) && (MB10P_FW_VERSION == 3201016)  /* 3_201_016 */
 #   include "fw_3.201.016/miwear_system.h"
+#elif defined(MB10P_FW_VERSION) && (MB10P_FW_VERSION == 3201026) /* 3_201_026 */
+#   include "fw_3.201.026/miwear_system.h"
 #elif defined(MB10P_FW_VERSION) && (MB10P_FW_VERSION == 3101043) /* 3_101_043 */
 #   include "fw_3.101.043/miwear_system.h"
 #else
