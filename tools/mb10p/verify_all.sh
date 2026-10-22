@@ -69,9 +69,42 @@ echo "== 4. Lua syntax + logic tests (mock shell)"
 for l in mb10pro/wf_native_manager/app/lua/main.lua mb10pro/wf_native_hello_test/app/lua/main.lua mb10pro/wf_native_calc_safe/app/lua/main.lua mb10pro/wf_native_hello/app/lua/main.lua; do
   luac -p $l && ok "luac -p $l" || bad "syntax $l"
 done
-lua5.4 tools/mb10p/test_manager.lua $M | tail -1 | grep -q 'CHECKS OK' && ok "test_manager.lua" || bad "test_manager.lua"
+TM=$(lua5.4 tools/mb10p/test_manager.lua $M | tail -1)
+echo "$TM" | grep -q 'CHECKS OK' && ok "test_manager.lua ($TM)" || bad "test_manager.lua ($TM)"
+MU=$(python3 tools/mb10p/mutate_manager.py | tail -1)
+python3 tools/mb10p/mutate_manager.py >/dev/null 2>&1 && ok "mutation check: every re-introduced bug is caught ($MU)" || bad "mutation check ($MU)"
+FT=$(python3 tools/mb10p/test_face_id.py | tail -1)
+echo "$FT" | grep -q 'CHECKS OK' && ok "test_face_id.py ($FT)" || bad "test_face_id.py ($FT)"
 lua5.4 tools/mb10p/test_hello_loader.lua mb10pro/wf_native_hello_test/app/lua/main.lua $D/mb10p_hello.elf | tail -1 | grep -q 'ALL SCENARIOS OK' && ok "test_hello_loader.lua" || bad "test_hello_loader.lua"
-grep -n -E 'reboot|reset|packagemanager|flash|mkfs|nobusiness|rm ' $M/main.lua | grep -v -E '^\s*[0-9]+:\s*--|"/data/nobusiness"|say\(|log\(|headline\(|set_lock|string\.|Reboot|reboot' | head -3 | grep -q . && bad "suspicious command text in manager" || ok "manager has no reboot/reset/rm/flash command"
+python3 - $M/main.lua <<'PYEOF' && ok "manager can only run getprop/lsmod/dmesg/cp/insmod/rmmod/ls/free (static check)" || bad "manager command set"
+import re, sys
+s = open(sys.argv[1]).read()
+allowed = {'getprop', 'lsmod', 'dmesg', 'cp', 'insmod', 'rmmod', 'ls', 'free'}
+bad = []
+for fn, arg in re.findall(r'(?<!function )\b(run|capture)\(([^)\n]*)', s):
+    m = re.match(r'\s*"([a-z]+)', arg)
+    if m:
+        if m.group(1) not in allowed: bad.append(arg)
+    elif not (fn == 'run' and arg.strip().startswith('cmd ..')):
+        bad.append(fn + '(' + arg)
+code = re.sub(r'--[^\n]*', '', s)          # comments may mention os.execute()
+if len(re.findall(r'\bos\.execute\(', code)) != 1 or 'io.popen' in code or 'loadstring' in code or re.search(r'\bload\(', code):
+    bad.append('os.execute outside run() / popen / dynamic code')
+if '/data/nobusiness"' in s.replace('"/data/nobusiness",', '') :
+    bad.append('/data/nobusiness used outside the SNAP list')
+print(bad) if bad else None
+sys.exit(1 if bad else 0)
+PYEOF
+python3 - <<'PYEOF' && ok "watchface IDs unique and titles match module.fprj (tools/mb10p/face_ids.tsv)" || bad "watchface ID registry"
+import re
+rows = [l.rstrip('\n').split('\t') for l in open('tools/mb10p/face_ids.tsv') if l.strip() and not l.startswith('id\t')]
+ids = [r[0] for r in rows]
+ok = len(ids) == len(set(ids)) and all(len(i) == 9 and i.isdigit() for i in ids)
+for proj, title in (('wf_native_hello', 'Hello'), ('wf_native_calc_safe', 'Calc safe'), ('wf_native_manager', 'NativeMgr')):
+    t = re.search(r'Screen Title="([^"]*)"', open('mb10pro/%s/module.fprj' % proj).read()).group(1)
+    ok = ok and t == title and any(r[1] == title for r in rows)
+raise SystemExit(0 if ok else 1)
+PYEOF
 
 echo "== 5. repo hygiene"
 BASE=$(git rev-parse --verify -q origin/master || echo HEAD)

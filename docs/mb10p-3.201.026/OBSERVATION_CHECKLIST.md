@@ -19,6 +19,10 @@ Công cụ: `wf_native_manager` (nút **SNAP**, **SCAN**, **VERIFY**) + mắt nh
 | S8 | **INSTALL** `calc_safe` lại → VERIFY | Cài lại được (module vắng sau reboot) |
 | S9 | Lặp S4–S8 ba lần | `free` (log dòng `FREE:`) không giảm dần |
 
+Giá trị tệp: `ABSENT` (không tồn tại), `DIR` (là thư mục), `UNKNOWN …` (không mở/đọc được), `size:adler32` (`+` = chỉ băm
+128 KiB đầu). Có bất kỳ mục `UNKNOWN` nào → SNAP báo `INCOMPLETE`, không phải `OK`. **Giai đoạn hiện tại chỉ thử Hello**
+(`HARDWARE_TEST_MANAGER_HELLO.md`); các bước S1–S9 với `calc_safe`/`pm_inspect` làm sau khi Hello PASS.
+
 ## Các khóa SNAP và ý nghĩa
 
 | Khóa | Nguồn | Mong đợi sau reboot (S5) | Ghi chú |
@@ -27,13 +31,14 @@ Công cụ: `wf_native_manager` (nút **SNAP**, **SCAN**, **VERIFY**) + mắt nh
 | `fw` | `getprop ro.build.version` | `3.201.026` | |
 | `modules` | `lsmod` | không có `calc_safe`, `mb10p_hello`, `pm_inspect` | các module hệ thống khác tùy máy |
 | `mod.<app>` | `lsmod` | `absent` | từ `loaded` trước reboot |
-| `file./data/mb10p_com.m0tral.calc_safe.elf` | size:adler32 | **không đổi** (6256:13a93070) | file còn nhưng không tự nạp |
+| `file./data/mb10p_mgr_calc_safe.elf` | size:adler32 | **không đổi** (6256:13a93070) | file của Manager còn nhưng không tự nạp |
+| `file./data/mb10p_com.m0tral.calc_safe.elf`, `file./data/mb10p_hello_3.201.026.elf` | size:adler32 | không đổi | tệp do watchface Calc safe / Hello Test chép; Manager chỉ đọc |
 | `file./data/calc_logo_112.png` | size:adler32 | không đổi (19531:fc37a033) | icon app tham chiếu theo đường dẫn |
 | `file./data/app/launcher/launcher.db` | size:adler32 (+ nếu >128 KiB chỉ băm 128 KiB đầu) | **quan trọng**: ghi lại có đổi sau INSTALL hay không | nếu đổi sau INSTALL và còn đổi sau reboot → launcher lưu id app |
 | `file./data/persist.db` | size | ghi nhận | cơ sở kvdb chung |
-| `file./data/nobusiness` | tồn tại? | **`absent`** | nếu `present` thì dừng: UI không khởi động lại |
+| `file./data/nobusiness` | tồn tại? | **`ABSENT`** | nếu khác `ABSENT` thì dừng: UI không khởi động lại |
 | `prop.persist.record_app_install` / `app_func_bitmap` / `app_capability` / `launcher.guide` | `getprop` | ghi lại; so S0 ↔ S2 ↔ S5 | khóa có thể rỗng nếu `getprop` không hỗ trợ |
-| `dmesg.<app>` | số dòng có tag `[calc_safe]`… | `0` | ring RAM bị xóa khi reboot; nếu `dmesg=n/a` thì mọi VERIFY chỉ là UNKNOWN |
+| `dmesg.<app>` | số dòng có tag `[calc_safe]`… trong lịch sử `/tmp` của lần khởi động này | `0` | lịch sử nằm trong tmpfs nên mất khi reboot; nếu `dmesg=UNKNOWN` thì mọi VERIFY chỉ là UNKNOWN |
 
 Dòng log ngoài diff (không so tự động): `LS launcher:` (liệt kê `/data/app/launcher`), `FREE:` (đầu ra `free`),
 `LSMOD[…] raw:` (nguyên văn `lsmod`, để xác nhận giả định cột `NEXPORTS`).

@@ -47,7 +47,7 @@ mình không nhận được log, ảnh chụp màn hình hay file `.face` nào 
 - Từng ELF: `ET_REL`, ARM, các loại relocation (`ABS32`, `TARGET1`, `THM_CALL`) nằm trong bảng trình nạp
   hỗ trợ, không symbol UND, `.init_array`/`.fini_array` trỏ bằng `TARGET1`, mọi hàm có bit Thumb, không `__aeabi_*`,
   mọi địa chỉ tuyệt đối nằm trong bảng ánh xạ, soft-float (hello/tools) hoặc FPv5 một độ chính xác (app).
-- Logic Lua với shell giả: 42 kiểm tra cho Manager (cộng phép thử đột biến: bỏ từng chốt an toàn thì ít nhất
+- Logic Lua với shell giả (tại thời điểm milestone; số hiện tại xem `NATIVE_APP_MANAGER.md`): 42 kiểm tra cho Manager (cộng phép thử đột biến: bỏ từng chốt an toàn thì ít nhất
   một kiểm tra fail) và 12 kịch bản cho loader Hello.
 
 **Hãy xác nhận:** bạn đã chạy đúng hai ELF có SHA-256 ở trên (không phải bản biên dịch lại khác). Nếu không,
@@ -56,14 +56,15 @@ milestone chỉ áp dụng cho bản bạn thực sự chạy.
 ## D. ID package EasyFace (rút ra từ lỗi `preInstall code=5`)
 
 Mỗi package watchface phải có **ID duy nhất**. Hai package sinh từ cùng một mẫu mang cùng ID `167210065`
-và cái thứ hai bị từ chối. Bảng ID (cập nhật khi tạo package mới; trường đặt ID nằm trong EasyFace, mình
-chưa thấy nó trong `module.fprj` nên không ghi tên trường):
+và cái thứ hai bị từ chối. ID nằm trong gói `.face` (chuỗi ASCII ở offset `0x28`, xem `EASYFACE_BUILD.md`);
+`module.fprj` không có trường ID. Bảng ID chính thức: `tools/mb10p/face_ids.tsv` (kiểm bởi `verify_all.sh`).
 
 | Package | ID | Nguồn |
 |---|---|---|
-| Hello (bản đã build) | `167210065` | bạn báo (ID trùng của mẫu) |
+| Hello (bản đã build) | `167210065` | bạn báo (ID mặc định của EasyFace) |
 | Calculator Safe | `193824671` | bạn đặt |
-| Hello Test / Native Manager | *chọn ID mới, chưa dùng* | – |
+| Native App Manager | `193824672` | dành riêng, đặt khi đóng gói (`EASYFACE_BUILD.md`) |
+| Hello Test | *chọn ID mới, chưa dùng* | – |
 
 ## E. Điều chỉnh so với báo cáo trước của mình
 

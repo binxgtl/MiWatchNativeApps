@@ -9,7 +9,7 @@ EasyFace (Windows, v4.23 hoặc tương thích) chỉ cần để đóng gói wa
 git checkout mb10p-global-3.201.026
 sh build_mb10p.sh 3201026          # build/3.201.026/{mb10p_hello,mb10p_app_safe,mb10p_pm_inspect,mb10p_app}.elf
                                    # build/3.201.026/experimental/{mb10p_pm_remove,mb10p_app_safe_nr}.elf
-bash tools/mb10p/verify_all.sh     # build sạch + so với dist/ + kiểm tra ELF + manifest + Lua + vệ sinh repo
+bash tools/mb10p/verify_all.sh     # build sạch + so với dist/ + kiểm tra ELF + manifest + Lua + đột biến + ID + vệ sinh repo
 ```
 Build chính xác (cờ trong `build_mb10p.sh`): `-mcpu=cortex-m33 -mthumb -ffreestanding -nostdlib -fno-jump-tables -fno-stack-protector -Os
 -DMB10P_FW_VERSION=3201026`; hello/pm-tool soft-float, app hard-float `fpv5-sp-d16`; liên kết `ld -r -T mb10pro/mb10pro.ld` (ET_REL).
@@ -31,7 +31,7 @@ python3 tools/mb10p/gen_manifest.py mb10pro/wf_native_manager/app/lua \
   mb10p_hello_3.201.026.elf mb10p_app_safe_3.201.026.elf mb10p_pm_inspect_3.201.026.elf calc_logo_112.png
 ```
 Thư mục watchface: `wf_native_hello` (upstream, thêm hàng 3.201.026), `wf_native_hello_test` (loader quan sát được), `wf_native_calc_safe`,
-`wf_native_manager`. Mỗi cái cần **ID package duy nhất** khi biên dịch (xem `MILESTONE.md`, mục D).
+`wf_native_manager`. Mỗi cái cần **ID package duy nhất** (`tools/mb10p/face_ids.tsv`; cách đặt: `EASYFACE_BUILD.md`).
 
 ## Ánh xạ địa chỉ
 `platform/mb10p/fw_3.201.026/miwear_system.h` (đầu vào của build) và `SYMBOLS.tsv` (dạng bảng, kèm bằng chứng). Phương pháp:
