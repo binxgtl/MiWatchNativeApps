@@ -9,6 +9,7 @@ local FW_TO_APP = {
     ["3.121.043"] = "mb10p_hello_3.101.043.elf",
     ["3.201.016"] = "mb10p_hello_3.201.016.elf",
     ["3.221.016"] = "mb10p_hello_3.201.016.elf",
+    ["3.201.026"] = "mb10p_hello_3.201.026.elf",
 }
 
 local function detect_fw_version()

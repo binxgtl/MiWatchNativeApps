@@ -422,7 +422,9 @@ lv_obj_t *calc_page_create(lv_obj_t *parent)
             lv_obj_set_size(btn, w, CALC_BTN_H);
             lv_obj_align(btn, LV_ALIGN_TOP_LEFT, x,
                          start_y + r * (CALC_BTN_H + CALC_BTN_GAP));
-            lvx_btn_set_text_fmt(btn, lbl);
+            /* The label is data, not a format: the "%" key would otherwise
+             * reach the printf-style formatter as a lone conversion. */
+            lvx_btn_set_text_fmt(btn, "%s", lbl);
 
             /* Function row (top) a bit lighter; other keys dark-grey;
              * orange "=". */

@@ -1,0 +1,119 @@
+name	address	kind	evidence_or_note
+syslog	0x2C1BEAB8	code(thumb)	43 votes (incl. unique signature match)
+lvx_reminder_set_uid	0x2C7DB0EC	code(thumb)	39 votes (incl. unique signature match)
+lvx_reminder_set_level	0x2C7DB0CC	code(thumb)	43 votes (incl. unique signature match)
+lvx_reminder_set_vibration	0x2C7DB0DC	code(thumb)	38 votes (incl. unique signature match)
+lvx_reminder_ignore_quiet_mode	0x2C7DA63C	code(thumb)	37 votes (incl. unique signature match)
+lvx_reminder_ignore_sleep_mode	0x2C7DA654	code(thumb)	14 votes (incl. unique signature match)
+lvx_reminder_ignore_mute_mode	0x2C7DA66C	code(thumb)	14 votes (incl. unique signature match)
+lvx_reminder_set_flag_bit7	0x2C7DA684	code(thumb)	38 votes (incl. unique signature match)
+lvx_reminder_set_kind_byte	0x2C7DB0FC	code(thumb)	26 votes (incl. unique signature match)
+lvx_reminder_set_life_times	0x2C7DA61C	code(thumb)	43 votes (incl. unique signature match)
+lvx_reminder_set_on_create	0x2C7DA594	code(thumb)	37 votes (incl. unique signature match)
+lvx_reminder_set_on_destroy	0x2C7DA5A4	code(thumb)	36 votes (incl. unique signature match)
+lvx_reminder_disable_backspace	0x2C7DA564	code(thumb)	17 votes (incl. unique signature match)
+lvx_reminder_set_bell	0x2C7DB1E4	code(thumb)	10 votes (incl. unique signature match)
+lvx_reminder_start	0x2C7DA6CC	code(thumb)	39 votes (incl. unique signature match)
+lvx_reminder_cancel	0x2C7DB0B0	code(thumb)	43 votes (incl. unique signature match)
+lvx_notification_insert_message	0x2C7DBDC8	code(thumb)	16 votes (incl. unique signature match)
+reminder_page_ota_start	0x2C4AB320	code(thumb)	3 votes (incl. unique signature match)
+lv_timer_create	0x2C558208	code(thumb)	veneer; 40 call-site votes; target body matches CN
+lv_timer_delete	0x2C558330	code(thumb)	veneer; 40 call-site votes; target body matches CN
+lv_obj_create	0x2C558560	code(thumb)	veneer; 40 call-site votes; target body matches CN
+lv_image_create	0x2C5587A0	code(thumb)	veneer; 40 call-site votes; target body matches CN
+lv_label_create	0x2C559B28	code(thumb)	veneer; 40 call-site votes; target body matches CN
+lv_analog_time_create		UNRESOLVED	UNRESOLVED: no unique match from fw_3.101.043
+lv_btn_create	0x2C559998	code(thumb)	veneer; 16 call-site votes; target body matches CN
+lvx_btn_create	0x2C78A114	code(thumb)	40 votes (incl. unique signature match)
+lv_canvas_create		UNRESOLVED	UNRESOLVED: no unique match from fw_3.101.043
+lv_crossview_create	0x2C483B50	code(thumb)	3 votes (incl. unique signature match)
+lv_sleepchart_create	0x2C5A422C	code(thumb)	5 votes (incl. unique signature match)
+lv_curvedlabel_create	0x2C790A50	code(thumb)	3 votes (incl. unique signature match)
+lv_frameanim_create	0x2C792174	code(thumb)	34 votes (incl. unique signature match)
+lv_imglabel_create		UNRESOLVED	UNRESOLVED: no unique match from fw_3.101.043
+lv_indicator_create		UNRESOLVED	UNRESOLVED: no unique match from fw_3.101.043
+lv_optionlist_create	0x2C7A0A10	code(thumb)	4 votes (incl. unique signature match)
+lv_slider_create	0x2C7A171C	code(thumb)	3 votes (incl. unique signature match)
+lv_xview_create	0x2C7A22DC	code(thumb)	3 votes (incl. unique signature match)
+lv_timeview_create	0x2C7A71BC	code(thumb)	11 votes (incl. unique signature match)
+lv_xwin_create	0x2C7A8E0C	code(thumb)	40 votes (incl. unique signature match)
+lv_zoombtn_create	0x2C7A9BB0	code(thumb)	18 votes (incl. unique signature match)
+lv_eventdispatch_create	0x2C7B6964	code(thumb)	9 votes (incl. unique signature match)
+lv_renderdata_create	0x2C7C9A54	code(thumb)	6 votes (incl. unique signature match)
+lv_render_file_create	0x2C7C9F6C	code(thumb)	6 votes (incl. unique signature match)
+lv_imgarc_create	0x2C7CB524	code(thumb)	5 votes (incl. unique signature match)
+lv_slot_create	0x2C7CD674	code(thumb)	5 votes (incl. unique signature match)
+lv_text_create	0x2C7CE5B8	code(thumb)	4 votes (incl. unique signature match)
+lv_wfwidget_create	0x2C7D0B04	code(thumb)	7 votes (incl. unique signature match)
+lv_widgetlayout_create		UNRESOLVED	UNRESOLVED: no unique match from fw_3.101.043
+lv_obj_set_size	0x2C558EE0	code(thumb)	veneer; 40 call-site votes; target body matches CN
+lv_image_set_src	0x2C557DD0	code(thumb)	veneer; 40 call-site votes; target body matches CN
+lv_obj_add_event_cb	0x2C557DF0	code(thumb)	veneer; 40 call-site votes; target body matches CN
+lv_label_set_text	0x2C558FC0	code(thumb)	veneer; 40 call-site votes; target body matches CN
+lvx_btn_set_text_fmt	0x2C78A328	code(thumb)	43 votes (incl. unique signature match)
+lv_obj_add_flag	0x2C557C98	code(thumb)	veneer; 40 call-site votes; target body matches CN
+lv_obj_clear_flag	0x2C559B38	code(thumb)	veneer; 40 call-site votes; target body matches CN
+lv_obj_align	0x2C5593B0	code(thumb)	veneer; 40 call-site votes; target body matches CN
+lv_obj_align_to	0x2C5587C0	code(thumb)	veneer; 40 call-site votes; target body matches CN
+lv_obj_set_width	0x2C558718	code(thumb)	veneer; 40 call-site votes; target body matches CN
+lv_obj_set_style_text_align	0x2C5599A0	code(thumb)	veneer; 40 call-site votes; target body matches CN
+lv_label_set_long_mode	0x2C5591F8	code(thumb)	veneer; 40 call-site votes; target body matches CN
+snprintf	0x2C1B8E6C	code(thumb)	43 votes (incl. unique signature match)
+lv_obj_set_style_bg_color	0x2C5594B8	code(thumb)	veneer; 18 call-site votes; target body matches CN
+lvx_btn_set_style_bg_color	0x2C78A1B0	code(thumb)	43 votes (incl. unique signature match)
+lv_obj_set_style_bg_opa	0x2C5594A0	code(thumb)	veneer; 27 call-site votes; target body matches CN
+lv_obj_set_style_pad_left	0x2C558750	code(thumb)	veneer; 16 call-site votes; target body matches CN
+lv_obj_set_style_pad_right	0x2C5591C8	code(thumb)	veneer; 16 call-site votes; target body matches CN
+lv_obj_set_style_pad_top	0x2C557C40	code(thumb)	veneer; 16 call-site votes; target body matches CN
+lv_obj_set_style_pad_bottom	0x2C559470	code(thumb)	veneer; 16 call-site votes; target body matches CN
+lv_obj_set_style_pad_row		UNRESOLVED	UNRESOLVED: no unique match from fw_3.101.043
+lv_obj_set_style_pad_column	0x2C559938	code(thumb)	veneer; 6 call-site votes; target body matches CN
+lvx_obj_set_style_text	0x2C44A66C	code(thumb)	43 votes (incl. unique signature match)
+lvx_label_set_time_text	0x2C78A4BC	code(thumb)	8 votes (incl. unique signature match)
+lv_anim_set		UNRESOLVED	UNRESOLVED: upstream CN entry is the lv_timer_create veneer
+lv_anim_start		UNRESOLVED	UNRESOLVED: upstream CN entry targets the lv_timer_* cluster (unverified identity)
+lv_anim_del		UNRESOLVED	UNRESOLVED: upstream CN entry is the lv_timer_delete veneer
+lv_obj_event	0x2C78A73C	code(thumb)	3 votes (incl. unique signature match)
+lv_obj_get_event_code	0x2C5589E0	code(thumb)	veneer; 40 call-site votes; target body matches CN
+lv_obj_get_target	0x2C559970	code(thumb)	veneer; 28 call-site votes; target body matches CN
+lv_obj_get_parent		UNRESOLVED	UNRESOLVED: no unique match from fw_3.101.043
+lv_event_get_user_data	0x2C558070	code(thumb)	veneer; 5 call-site votes; target body matches CN
+lv_event_get_param		UNRESOLVED	UNRESOLVED: upstream CN entry is the lv_timer_create veneer
+LB_TEXT_STYLE_1	0x200D68F0	data	40 code xrefs agree
+LB_TEXT_STYLE_2	0x200D68FC	data	31 code xrefs agree
+LB_TEXT_STYLE_3	0x200D6A1C	data	29 code xrefs agree
+screen_turn_on	0x2C7B4AAC	code(thumb)	39 votes (incl. unique signature match)
+screen_turn_off	0x2C7B4B00	code(thumb)	13 votes (incl. unique signature match)
+screen_set_keepon	0x2C7B4A08	code(thumb)	8 votes (incl. unique signature match)
+screen_toggle_keepon_duration	0x2C7B497C	code(thumb)	4 votes (incl. unique signature match)
+screen_session_start	0x2C7B43DC	code(thumb)	29 votes (incl. unique signature match)
+screen_session_stop	0x2C7B446C	code(thumb)	27 votes (incl. unique signature match)
+screen_session_restore_default	0x2C7B4738	code(thumb)	4 votes (incl. unique signature match)
+screen_session_set_full_power	0x2C7B46E4	code(thumb)	9 votes (incl. unique signature match)
+screen_session_set_brightness_value	0x2C7B468C	code(thumb)	13 votes (incl. unique signature match)
+screen_session_set_auto_brightness	0x2C7B4628	code(thumb)	13 votes (incl. unique signature match)
+screen_session_set_keepon	0x2C7B45D4	code(thumb)	19 votes (incl. unique signature match)
+screen_session_set_touch_palm	0x2C7B4580	code(thumb)	16 votes (incl. unique signature match)
+screen_session_set_wrist_drop	0x2C7B452C	code(thumb)	18 votes (incl. unique signature match)
+g_packagemanager_api	0x200B72E0	data	9-pointer table matched in GL .data image (unique)
+app_launcher_add	0x2C48C3E4	code(thumb)	4 votes (incl. unique signature match)
+app_lookup	0x2C7AB19C	code(thumb)	3 votes (incl. unique signature match)
+app_launcher_del	0x2C48C4CC	code(thumb)	disassembly; log string "app_launcher_del"; 7 BL callers
+pm_uninstalled_lookup	0x2C7AB1D4	code(thumb)	disassembly; ops-table slot +8
+g_watchface_config	0x20100224	data	33 code xrefs agree
+watchface_manager_delete_watchface	0x2C7D7444	code(thumb)	9 votes (incl. unique signature match)
+watchface_manager_reset_watchface	0x2C5571C8	code(thumb)	12 votes (incl. unique signature match)
+pm_state	0x200B72C0	data	list heads: +0 main list sentinel 0x200B7280, +4 uninstalled list sentinel 0x200B7240, +0x18 ops table (rodata 0x2CA75534); from disassembly
+pm_api.install	0x2C7ABB68	code(thumb)	g_packagemanager_api+0x00; copies 0x40-byte app descriptor to heap, strdup name/icon, stores page POINTERS
+pm_api.recover	0x2C7ABD24	code(thumb)	g_packagemanager_api+0x04
+pm_api.uninstall	0x2C7ABDFC	code(thumb)	g_packagemanager_api+0x08; app+0x28 custom handler(name) else unregister
+pm_api.unregister	0x2C7AB8E0	code(thumb)	g_packagemanager_api+0x0C; frees node unless flags&0x08==0 (recoverable)
+pm_api.update_notify	0x2C7AB860	code(thumb)	g_packagemanager_api+0x10
+pm_api.widgets_add	0x2C7ABA2C	code(thumb)	g_packagemanager_api+0x14
+pm_api.widgets_remove	0x2C7AB190	code(thumb)	g_packagemanager_api+0x18
+pm_api.set_hidden	0x2C7AB8A0	code(thumb)	g_packagemanager_api+0x1C
+pm_api.is_hidden	0x2C7AB20C	code(thumb)	g_packagemanager_api+0x20
+pm_ops.is_recoverable	0x2C7AB32C	code(thumb)	ops+0x38: returns !(app->flags & 0x08)
+pm_ops.notify	0x2C7AB308	code(thumb)	ops+0x2C: calls app->on_signal(app,event) (app+0x38) when non-NULL
+pagemgr_table	0x200B7304	data	+0x0C page register, +0x10 page unregister (called by install/unregister)
+free	0x2C1C51B4	code(thumb)	heap free(p): inferred from 3355 callers and mm_free tail call; used by pm unregister on the heap node

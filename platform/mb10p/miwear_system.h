@@ -28,12 +28,16 @@
 
 #include "platform/mb10p/watchface_layout.h"   /* watchface_config_v2_t */
 
-#if defined(MB10P_FW_VERSION) && (MB10P_FW_VERSION == 3201016)  /* 3_201_016 */
+#if defined(MB10P_FW_VERSION) && (MB10P_FW_VERSION == 3201026)  /* 3_201_026 */
+#   include "fw_3.201.026/miwear_system.h"
+#elif defined(MB10P_FW_VERSION) && (MB10P_FW_VERSION == 3201016)  /* 3_201_016 */
 #   include "fw_3.201.016/miwear_system.h"
 #elif defined(MB10P_FW_VERSION) && (MB10P_FW_VERSION == 3101043) /* 3_101_043 */
 #   include "fw_3.101.043/miwear_system.h"
 #else
-#   include "fw_3.101.043/miwear_system.h"   /* default = 3_101_043 */
+    /* An unknown firmware must not silently fall back to another build's
+     * hard-coded addresses: every binding is version-specific. */
+#   error "platform/mb10p: unsupported MB10P_FW_VERSION (use 3101043, 3201016 or 3201026)"
 #endif
 
 #endif /* MB10P_MIWEAR_SYSTEM_H */
