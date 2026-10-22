@@ -2,7 +2,8 @@
 
 **Trạng thái:** 144 kiểm tra logic với shell/hệ tệp/LVGL giả (`tools/mb10p/test_manager.lua`) và 34 đột biến
 (`tools/mb10p/mutate_manager.py`: đưa lại từng lỗi đã sửa hoặc bỏ từng chốt an toàn → test phải fail; cả 34 đều bị bắt).
-**Chưa chạy trên đồng hồ. Chưa biên dịch bằng EasyFace** (không có EasyFace trong môi trường này).
+**Chưa chạy trên đồng hồ; gói NativeMgr chưa được cài** (dù tạo bằng `build_faces.py --target native_mgr` hay EasyFace).
+Gói này dùng preview RGB không alpha – trường hợp packer chưa được kiểm trên máy (`EASYFACE_BUILD.md` mục 5).
 Thứ tự thử trên máy: [HARDWARE_TEST_MANAGER_HELLO.md](HARDWARE_TEST_MANAGER_HELLO.md). Đóng gói và ID: [EASYFACE_BUILD.md](EASYFACE_BUILD.md).
 
 ## Màn hình 336×480

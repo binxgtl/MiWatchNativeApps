@@ -4,4 +4,4 @@ id	title	project	status
 193824672	NativeMgr	mb10pro/wf_native_manager	reserved, not yet installed
 193824673	Calc fix	Calc Safe + formatter fix febb4e9 (hardware test package)	reserved
 193824674	Calc dec	Calc Safe + decimal calculator 8600e41 (hardware test package)	reserved
-193824675	Hello py	Hello Test packed by tools/mb10p/face_pack.py (packer hardware check)	reserved
+193824675	Hello py	Hello Test packed by tools/mb10p/face_pack.py (build_faces.py target hello_py)	installed on the band (hardware PASS 2026-10-23)

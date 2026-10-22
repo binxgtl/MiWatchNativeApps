@@ -1,6 +1,7 @@
 # Thử Native App Manager trên máy – giai đoạn 1: chỉ Hello
 
-Thiết bị: Smart Band 10 Pro Global, firmware `3.201.026`. Gói: `NativeMgr_193824672.face` (xem `EASYFACE_BUILD.md`).
+Thiết bị: Smart Band 10 Pro Global, firmware `3.201.026`. Gói: `native_mgr_193824672.face` từ `python3 tools/mb10p/build_faces.py`, hoặc `NativeMgr_193824672.face` từ EasyFace
+(xem `EASYFACE_BUILD.md`). Gói do packer tạo dùng preview RGB – chưa thử trên máy: nếu cài lỗi, ghi nguyên văn mã lỗi rồi thử bản EasyFace.
 **Chưa thử `calc_safe` hay `pm_inspect` qua Manager cho tới khi giai đoạn này PASS.**
 
 Trước khi bắt đầu:

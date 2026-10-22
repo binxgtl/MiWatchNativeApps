@@ -1,6 +1,60 @@
-# Build Native App Manager bằng EasyFace (Windows) và watchface ID
+# Đóng gói watchface MB10 Pro (fw 3.201.026): `build_faces.py`, EasyFace dự phòng, watchface ID
 
-## 1. Thư mục project
+## 1. Hai cách đóng gói
+
+| | Cách A – mặc định: `tools/mb10p/build_faces.py` | Cách B – dự phòng: EasyFace v4.23 (Windows) |
+|---|---|---|
+| Chạy trên | Linux / WSL / Windows, Python 3, chỉ thư viện chuẩn | Windows, EasyFace v4.23 |
+| Dạng project | **chỉ** DeviceType 567, một widget Lua `app_lua%2Fmain.lua` 336×480, tệp phẳng trong `app/lua`, preview PNG 8-bit 336×480 | mọi dạng EasyFace hỗ trợ |
+| ID | lấy từ `face_targets.tsv` / `face_ids.tsv`, ghi thẳng vào gói | ô ID của EasyFace, hoặc `face_id.py set` sau khi build |
+| Trên máy | `Hello py` (193824675) **PASS** 2026-10-23 (mục 5) | `Hello`, `Calc safe` đã cài và chạy |
+
+Project nào không đúng dạng ở cột A (DeviceType khác, nhiều widget, thư mục con, preview khác 336×480 hoặc không phải PNG
+8-bit RGB/RGBA…) đều bị `face_pack.py` **từ chối**; khi đó dùng cách B.
+
+## 2. Cách A: build bằng `build_faces.py`
+
+```sh
+git checkout mb10p-global-3.201.026
+bash tools/mb10p/verify_all.sh            # phải in ALL CHECKS PASSED
+python3 tools/mb10p/build_faces.py        # -> build/faces/3.201.026/
+```
+
+Kết quả (`build/faces/3.201.026/`, không đưa vào git):
+
+| Tệp | ID | Title | Nguồn | Trạng thái phần cứng |
+|---|---|---|---|---|
+| `hello_py_193824675.face` | 193824675 | Hello py | `wf_native_hello` (fprj, preview) + `wf_native_hello_test` (`app/lua`) | **PASS** – chính tệp này (SHA-256 `0e2491eb…3078c50`) |
+| `calc_safe_193824671.face` | 193824671 | Calc safe | `wf_native_calc_safe` | gói do packer tạo **chưa cài**; build với ID `167210065` thì trùng từng byte `Calc_safe.face` của EasyFace |
+| `native_mgr_193824672.face` | 193824672 | NativeMgr | `wf_native_manager` | **chưa thử trên máy** (cả packer lẫn EasyFace); preview **RGB không alpha** – chưa so với EasyFace, chưa thử trên máy |
+
+cùng `SHA256SUMS` và `BUILD_INFO.txt` (commit nguồn, danh sách tệp, trạng thái phần cứng từng gói).
+
+- Chỉ một vài gói: `python3 tools/mb10p/build_faces.py --target native_mgr` (lặp `--target` được).
+- Thư mục khác: `--out DIR`. **DIR không được tồn tại**: không bao giờ ghi đè; muốn build lại thì tự xóa thư mục cũ.
+- Windows: `py tools\mb10p\build_faces.py` (cùng lệnh, cùng kết quả).
+
+`build_faces.py` dừng (mã 2, `BUILD REFUSED: …`, không để lại tệp nào) khi:
+- thư mục kết quả đã tồn tại (mọi gói được build trong thư mục tạm cạnh đó, chỉ đổi tên vào chỗ khi **tất cả** đạt);
+- ID của gói không có trong `face_ids.tsv`; Title của gói luôn là Title đăng ký cho ID đó;
+- một `.elf` trong project khác bản trong `dist/mb10p-3.201.026` (theo `SHA256SUMS`, tên bỏ hậu tố `_3.201.026`), hoặc không có bản
+  tương ứng ở đó (ví dụ ELF thử nghiệm);
+- `app/lua` có symlink, tệp ẩn, thư mục con; project nằm ngoài `mb10pro/wf_native_*`; `module.fprj` không đúng dạng ở mục 1;
+- kiểm lại sau khi đóng gói thất bại: `face_id.parse`, tệp trong gói khác nguồn, preview khác PNG;
+- `hello_py` không còn trùng từng byte với gói đã PASS trên máy → packer hoặc nguồn Hello Test đã đổi (lưới an toàn cho packer).
+
+Trước khi cài một gói: `python3 tools/mb10p/face_id.py check <gói> --id <ID> --title <Title>` và `face_id.py extract` để đối chiếu
+SHA-256 với `dist/mb10p-3.201.026/SHA256SUMS`, như cách B.
+
+Kiểm offline (đã nằm trong `verify_all.sh`):
+```sh
+python3 tools/mb10p/test_face_pack.py     # 17 kiểm tra packer (thêm: <thư mục chứa Hello.face, Calc_safe.face> -> 19, so từng byte với EasyFace)
+python3 tools/mb10p/test_build_faces.py   # 20 kiểm tra: build hết, tất định, hello_py = gói PASS, các trường hợp từ chối
+```
+
+## 2b. Cách B (dự phòng): EasyFace v4.23
+
+Thư mục project, ví dụ `mb10pro/wf_native_manager/`:
 
 ```
 mb10pro/wf_native_manager/
@@ -13,10 +67,7 @@ mb10pro/wf_native_manager/
   app/lua/calc_logo_112.png
 ```
 
-`module.fprj` cùng định dạng với Hello / Calc safe mà bạn đã build thành công bằng EasyFace v4.23. Không có ELF thử nghiệm
-(`pm_remove`, `app_safe_nr`) trong gói (kiểm bởi `verify_all.sh`).
-
-## 2. Các bước
+Không có ELF thử nghiệm (`pm_remove`, `app_safe_nr`) trong gói (kiểm bởi `verify_all.sh`).
 
 1. Trên Linux (hoặc WSL): `bash tools/mb10p/verify_all.sh` phải in `ALL CHECKS PASSED`.
 2. Chép cả thư mục `mb10pro/wf_native_manager` sang Windows. Mở `module.fprj` bằng EasyFace v4.23, thiết bị Mi Band 10 Pro,
@@ -73,16 +124,25 @@ của bạn không được đưa vào repo.
 - Watchface Hello gốc (upstream) chạy `rmmod mb10p_hello` rồi `insmod` khi mở: đừng mở nó trong lúc thử Manager, vì nó sẽ gỡ
   module Hello mà Manager đã nạp (Manager sẽ thấy hàng `lsmod` khác và từ chối REMOVE).
 
-## 5. Đóng gói không cần EasyFace (`tools/mb10p/face_pack.py`) – CHƯA dùng trong pipeline
+## 5. `face_pack.py`: nguồn gốc định dạng và kết quả trên máy
 
-- Wine + `compile.exe`: chưa thử được — `compile.exe` (bản phát hành EasyFace) không có trong môi trường này và
-  không tải được qua proxy; repo `m0tral/EasyFace` chỉ có README.
-- `face_pack.py PROJECT OUT.face --id <9 chữ số>`: chỉ cho đúng dạng project ở đây (DeviceType 567, một widget Lua
-  `app_lua%2Fmain.lua` 336×480, tệp phẳng trong `app/lua`, preview PNG 8-bit RGB/RGBA 336×480), chỉ dùng thư viện
-  chuẩn Python. Phần header còn lại (bảng mục ở 0xB0, bản ghi kết thúc trỏ tới `main.lua`, preview BGRA alpha thẳng)
-  được suy ra từ hai gói EasyFace v4.23 thật.
-- `python3 tools/mb10p/test_face_pack.py <thư mục chứa Hello.face, Calc_safe.face>`: dựng lại cả hai gói từ nguồn
-  ở commit `6d9ad0f` → **trùng từng byte** với bản EasyFace; thêm 14 kiểm tra (định dạng, tất định, từ chối project lạ).
-- Chưa kiểm: preview RGB (không alpha) so với EasyFace; đồng hồ có nhận gói do Python tạo hay không. Gói thử:
-  `Hello py` (ID `193824675`) = `Hello.face` đã cài thành công, chỉ khác ID/Title. Chỉ đưa packer vào pipeline tự động
-  sau khi gói này được xác nhận trên máy.
+- `face_pack.py PROJECT OUT.face --id <9 chữ số>` là bộ đóng gói mà `build_faces.py` gọi. Chỉ dùng thư viện chuẩn Python, chỉ
+  nhận dạng project ở mục 1, kiểm lại gói vừa tạo bằng `face_id.parse`, không ghi đè tệp có sẵn (kể cả symlink trỏ tới chỗ trống).
+  Phần header còn lại (bảng mục ở 0xB0, bản ghi kết thúc trỏ tới `main.lua`, preview BGRA alpha thẳng) suy ra từ hai gói
+  EasyFace v4.23 thật; `test_face_pack.py <thư mục chứa Hello.face, Calc_safe.face>` dựng lại cả hai từ nguồn ở commit `6d9ad0f`
+  → **trùng từng byte**.
+- Wine + `compile.exe`: không thử được (`compile.exe` không có trong môi trường này, không tải được qua proxy; repo
+  `m0tral/EasyFace` chỉ có README). Không cần nữa cho dạng project ở mục 1.
+
+**Đã xác nhận trên phần cứng (chủ thiết bị báo, 2026-10-23):** `HelloPy_193824675.face`
+(SHA-256 `0e2491ebcd77ef8cb6294b326008a90b25d912510acbce2bcafe27d7e3078c50`, 658 916 B), tạo bằng `face_pack.py`, không qua EasyFace,
+trên Smart Band 10 Pro Global `3.201.026`: cài được, mở được, CHECK PASS, LOAD PASS, UNLOAD PASS. `build_faces.py` tạo lại
+đúng tệp này (`hello_py_193824675.face`) từ nguồn hiện tại.
+
+Phạm vi của kết quả đó – **chưa** được chứng minh trên máy:
+- **Preview RGB (PNG không alpha).** Gói PASS dùng preview RGBA; packer ghi RGB thành BGRA alpha 255, nhưng chưa có gói EasyFace
+  nào có preview RGB để so, và chưa cài gói nào như vậy. `native_mgr` là gói duy nhất hiện dùng preview RGB.
+- **Gói nhiều tệp hơn / tệp không phải ELF.** Gói PASS có 2 tệp (`main.lua`, một ELF). `calc_safe` (3 tệp, có PNG) chỉ được
+  chứng minh trùng byte với EasyFace (ID mặc định), bản packer chưa cài; `native_mgr` (5 tệp) chưa cài.
+- **Dạng project khác** (DeviceType khác 567, nhiều widget, ảnh/tài nguyên EasyFace khác, thư mục con…): packer từ chối, dùng EasyFace.
+- Firmware khác `3.201.026`: chưa thử.

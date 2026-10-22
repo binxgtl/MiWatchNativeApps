@@ -75,6 +75,10 @@ MU=$(python3 tools/mb10p/mutate_manager.py | tail -1)
 python3 tools/mb10p/mutate_manager.py >/dev/null 2>&1 && ok "mutation check: every re-introduced bug is caught ($MU)" || bad "mutation check ($MU)"
 FT=$(python3 tools/mb10p/test_face_id.py | tail -1)
 echo "$FT" | grep -q 'CHECKS OK' && ok "test_face_id.py ($FT)" || bad "test_face_id.py ($FT)"
+FP=$(python3 tools/mb10p/test_face_pack.py | tail -1)
+echo "$FP" | grep -q 'CHECKS OK' && ok "test_face_pack.py ($FP)" || bad "test_face_pack.py ($FP)"
+BF=$(python3 tools/mb10p/test_build_faces.py | tail -1)
+echo "$BF" | grep -q 'CHECKS OK' && ok "test_build_faces.py: .face pipeline deterministic, hello_py = hardware-PASS package ($BF)" || bad "test_build_faces.py ($BF)"
 lua5.4 tools/mb10p/test_hello_loader.lua mb10pro/wf_native_hello_test/app/lua/main.lua $D/mb10p_hello.elf | tail -1 | grep -q 'ALL SCENARIOS OK' && ok "test_hello_loader.lua" || bad "test_hello_loader.lua"
 python3 - $M/main.lua <<'PYEOF' && ok "manager can only run getprop/lsmod/dmesg/cp/insmod/rmmod/ls/free (static check)" || bad "manager command set"
 import re, sys

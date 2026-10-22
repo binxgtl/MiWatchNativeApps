@@ -13,9 +13,10 @@ PROJECT_DIR is an EasyFace project of the shape used here:
 
 Anything else is refused: this is NOT a general EasyFace replacement. The
 byte layout (see face_id.py) was taken from two EasyFace v4.23 outputs;
-`face_pack.py --selftest DIR` rebuilds them from their sources and must
-reproduce them byte for byte. A package from this tool is only as trusted
-as that comparison until one has been installed on a band.
+`test_face_pack.py DIR` rebuilds them from their sources and must reproduce
+them byte for byte. Hardware: one package from this tool (Hello py,
+193824675) installed and ran on a Smart Band 10 Pro Global 3.201.026; the
+pipeline entry point is build_faces.py, which rebuilds it as a canary.
 """
 import argparse, os, re, struct, sys, zlib
 
@@ -93,8 +94,8 @@ def read_project(d):
     files = []
     for n in names:
         p = os.path.join(lua, n)
-        if not os.path.isfile(p) or not re.fullmatch(r'[A-Za-z0-9_.\-]+', n):
-            raise PackError('app/lua/%s: only plain files with simple ASCII names' % n)
+        if os.path.islink(p) or not os.path.isfile(p) or not re.fullmatch(r'[A-Za-z0-9_\-][A-Za-z0-9_.\-]*', n):
+            raise PackError('app/lua/%s: only plain files (no links, no hidden files) with simple ASCII names' % n)
         files.append(('lua/' + n, open(p, 'rb').read()))
     if 'lua/main.lua' not in [f[0] for f in files]:
         raise PackError('app/lua/main.lua missing')
@@ -155,10 +156,15 @@ def main(argv=None):
     except (PackError, face_id.FaceError, OSError) as e:
         print('REFUSED: %s' % e, file=sys.stderr)
         return 2
-    if os.path.exists(a.out):
+    if os.path.lexists(a.out):
         print('REFUSED: %s exists' % a.out, file=sys.stderr)
         return 2
-    open(a.out, 'wb').write(data)
+    try:
+        with open(a.out, 'xb') as f:                     # 'x': never replaces a file created meanwhile
+            f.write(data)
+    except FileExistsError:
+        print('REFUSED: %s exists' % a.out, file=sys.stderr)
+        return 2
     import hashlib
     print('OK  %s  id=%s title=%s files=%s  %d bytes sha256 %s' % (a.out, a.id, title, ','.join(f[0] for f in files),
                                                                 len(data), hashlib.sha256(data).hexdigest()))

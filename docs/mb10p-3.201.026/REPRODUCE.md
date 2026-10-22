@@ -2,14 +2,16 @@
 
 ## Yêu cầu
 `arm-none-eabi-gcc` (đã dùng bản có `-mcpu=cortex-m33`, `fpv5-sp-d16`), `binutils` ARM, `lua5.4`, `luac`, `python3`, `sha256sum`.
-EasyFace (Windows, v4.23 hoặc tương thích) chỉ cần để đóng gói watchface; không có trong repo.
+Đóng gói watchface: `tools/mb10p/build_faces.py` (Python 3, mặc định) hoặc EasyFace (Windows, v4.23, dự phòng; không có trong repo).
+Xem `EASYFACE_BUILD.md`.
 
 ## Lệnh
 ```sh
 git checkout mb10p-global-3.201.026
 sh build_mb10p.sh 3201026          # build/3.201.026/{mb10p_hello,mb10p_app_safe,mb10p_pm_inspect,mb10p_app}.elf
                                    # build/3.201.026/experimental/{mb10p_pm_remove,mb10p_app_safe_nr}.elf
-bash tools/mb10p/verify_all.sh     # build sạch + so với dist/ + kiểm tra ELF + manifest + Lua + đột biến + ID + vệ sinh repo
+bash tools/mb10p/verify_all.sh     # build sạch + so với dist/ + kiểm tra ELF + manifest + Lua + đột biến + ID + packer + vệ sinh repo
+python3 tools/mb10p/build_faces.py # build/faces/3.201.026/*.face + SHA256SUMS + BUILD_INFO.txt (thư mục phải chưa tồn tại)
 ```
 Build chính xác (cờ trong `build_mb10p.sh`): `-mcpu=cortex-m33 -mthumb -ffreestanding -nostdlib -fno-jump-tables -fno-stack-protector -Os
 -DMB10P_FW_VERSION=3201026`; hello/pm-tool soft-float, app hard-float `fpv5-sp-d16`; liên kết `ld -r -T mb10pro/mb10pro.ld` (ET_REL).
