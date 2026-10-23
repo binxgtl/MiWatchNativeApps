@@ -1,4 +1,5 @@
 target	id	fprj_dir	lua_dir	hw_sha256	hardware
 hello_py	193824675	mb10pro/wf_native_hello	mb10pro/wf_native_hello_test	0e2491ebcd77ef8cb6294b326008a90b25d912510acbce2bcafe27d7e3078c50	PASS 2026-10-23 on Smart Band 10 Pro Global 3.201.026 (install, open, CHECK, LOAD, UNLOAD); this exact file
 calc_safe	193824671	mb10pro/wf_native_calc_safe	mb10pro/wf_native_calc_safe	-	packer output not installed; built with ID 167210065 it is byte-identical to the EasyFace v4.23 Calc_safe.face reference
-native_mgr	193824672	mb10pro/wf_native_manager	mb10pro/wf_native_manager	-	NOT hardware-tested (packer or EasyFace); RGB preview without alpha, not compared with EasyFace
+native_mgr	193824672	mb10pro/wf_native_manager	mb10pro/wf_native_manager	-	this packer build NOT hardware-tested; an earlier EasyFace v4.23 build (Manager sources before 45629d2) PASSED on the band (owner report); RGB preview PNG, packed as BGRA alpha 255
+calc_dec	193824674	mb10pro/wf_native_calc_dec	mb10pro/wf_native_calc_dec	abcb50dca04f2ef2407f43995ce6b6761baa16ea16ea0ee55566026d7f127f8f	PASS 2026-10-23 on Smart Band 10 Pro Global 3.201.026 (install, START, all 13 calculator checks; 17-character results clipped by the display); this exact file

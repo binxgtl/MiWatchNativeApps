@@ -20,6 +20,9 @@
 
 local lvgl = require("lvgl")
 
+-- Shown at open and logged by SCAN, so a reinstalled package can be told apart.
+local MGR_BUILD = "r2 2026-10-23 (pm_inspect LDRH fix, calc_dec)"
+
 local EXPECT_FW = "3.201.026"
 -- From /etc/build.prop of the GL 3.201.026 image (vela_ap.bin):
 --   ro.build.version=3.201.026
@@ -53,6 +56,7 @@ local PKG_MAX = 1048576
 local MANIFEST = {
     ["mb10p_hello_3.201.026.elf"] = { size = 1388, adler = "9a3983d4" },
     ["mb10p_app_safe_3.201.026.elf"] = { size = 6256, adler = "13a93070" },
+    ["mb10p_calc_dec_3.201.026.elf"] = { size = 7836, adler = "ec5115de" },
     ["mb10p_pm_inspect_3.201.026.elf"] = { size = 2968, adler = "ebf55792" },
     ["calc_logo_112.png"] = { size = 19531, adler = "fc37a033" },
 }
@@ -64,6 +68,18 @@ local MANIFEST = {
 -- conflicts: module names that must not be loaded when installing.
 -- expect / fail: checks on the app's own syslog lines (plain text, or a
 -- capture compared with `equals` / `notequals`).
+-- Every calculator build registers app 0xC1 and logs as [calc_safe]; all of
+-- them (and the Calc safe / Calc fix / Calc dec watchfaces) use module name
+-- calc_safe, so each loader sees the others. mb10p_app: upstream calculator.
+local CALC_CONFLICTS = { "calc_safe", "mb10p_app" }
+local CALC_EXPECT = { { plain = "[calc_safe] loaded" }, { plain = "[calc_safe] timer fired" },
+                      { cap = "%[calc_safe%] pm install%(.-%) rc=(%-?%d+)", equals = "0" },
+                      { plain = "[calc_safe] app_launcher_add rc=" },
+                      { plain = "[calc_safe] registered" } }
+local CALC_FAIL = { { plain = "[calc_safe] app 0x" },   -- "app 0x.. already registered, skip"
+                    { cap = "%[calc_safe%] pm install%(.-%) rc=(%-?%d+)", notequals = "0" } }
+local LOGO = { { src = "calc_logo_112.png", dst = "/data/calc_logo_112.png", shared = true } }
+
 local APPS = {
     { key = "hello", label = "Hello", module = "mb10p_hello", kind = "transient",
       elf = "mb10p_hello_3.201.026.elf", dst = "/data/mb10p_mgr_hello.elf",
@@ -71,15 +87,11 @@ local APPS = {
       expect = { { plain = "[hello_module] loaded" }, { plain = "[hello_module] hello" } } },
     { key = "calc_safe", label = "CalcSafe", module = "calc_safe", kind = "registering",
       elf = "mb10p_app_safe_3.201.026.elf", dst = "/data/mb10p_mgr_calc_safe.elf",
-      extra = { { src = "calc_logo_112.png", dst = "/data/calc_logo_112.png", shared = true } },
-      conflicts = { "calc_safe", "mb10p_app" },   -- mb10p_app: upstream calculator, same app id
-      tag = "[calc_safe]",
-      expect = { { plain = "[calc_safe] loaded" }, { plain = "[calc_safe] timer fired" },
-                 { cap = "%[calc_safe%] pm install%(.-%) rc=(%-?%d+)", equals = "0" },
-                 { plain = "[calc_safe] app_launcher_add rc=" },
-                 { plain = "[calc_safe] registered" } },
-      fail = { { plain = "[calc_safe] app 0x" },   -- "app 0x.. already registered, skip"
-               { cap = "%[calc_safe%] pm install%(.-%) rc=(%-?%d+)", notequals = "0" } } },
+      extra = LOGO, conflicts = CALC_CONFLICTS, tag = "[calc_safe]", expect = CALC_EXPECT, fail = CALC_FAIL },
+    -- decimal calculator: the module that passed on the band (f6251c33.., mb10pro/ui_dec)
+    { key = "calc_dec", label = "CalcDec", module = "calc_safe", kind = "registering",
+      elf = "mb10p_calc_dec_3.201.026.elf", dst = "/data/mb10p_mgr_calc_dec.elf",
+      extra = LOGO, conflicts = CALC_CONFLICTS, tag = "[calc_safe]", expect = CALC_EXPECT, fail = CALC_FAIL },
     { key = "pm_inspect", label = "PMInspect", module = "pm_inspect", kind = "transient",
       elf = "mb10p_pm_inspect_3.201.026.elf", dst = "/data/mb10p_mgr_pm_inspect.elf",
       conflicts = { "pm_inspect" }, tag = "[pm_inspect]", done = "[pm_inspect] DONE" },
@@ -391,8 +403,14 @@ end
 -- "#base N" = lines dropped from the front). A mark taken just before
 -- insmod lets VERIFY look only at lines produced after it.
 
-local TAGS = {}
-for _, a in ipairs(APPS) do TAGS[#TAGS + 1] = a.tag end
+local TAGS, MODS = {}, {}                -- distinct tags; first app of each module (SNAP)
+do
+    local seen_t, seen_m = {}, {}
+    for _, a in ipairs(APPS) do
+        if not seen_t[a.tag] then seen_t[a.tag] = true TAGS[#TAGS + 1] = a.tag end
+        if not seen_m[a.module] then seen_m[a.module] = true MODS[#MODS + 1] = a end
+    end
+end
 
 local function ours(line)
     for _, t in ipairs(TAGS) do if line:find(t, 1, true) then return true end end
@@ -565,12 +583,19 @@ local function app() return APPS[sel] end
 local function module_mark(a, rows)
     if not rows then return "?" end
     if not rows[a.module] then return "absent" end
-    local st = load_state()[a.key]
-    return (st and st.row == rows[a.module]) and "loaded(ours)" or "loaded(?)"
+    local all = load_state()
+    local st = all[a.key]
+    if st and st.row == rows[a.module] then return "loaded(ours)" end
+    for _, b in ipairs(APPS) do         -- same module name, loaded by this manager as another app
+        local o = all[b.key]
+        if b ~= a and b.module == a.module and o and o.row == rows[a.module] then return "loaded(as " .. b.key .. ")" end
+    end
+    return "loaded(?)"
 end
 
 local function do_scan()
     begin("SCAN")
+    log("MANAGER " .. MGR_BUILD)
     local v, why = getprop("ro.build.version")
     local fst = fw_status(v)
     say("fw: " .. tostring(v ~= nil and (v ~= "" and v or "(empty)") or "?") .. " " .. fst ..
@@ -837,9 +862,10 @@ end
 
 -- Snapshot keys for "is the system clean after reboot?". Only read.
 local SNAP_FILES = {
-    "/data/mb10p_mgr_hello.elf", "/data/mb10p_mgr_calc_safe.elf", "/data/mb10p_mgr_pm_inspect.elf",
-    "/data/calc_logo_112.png",
-    "/data/mb10p_com.m0tral.calc_safe.elf", "/data/mb10p_hello_3.201.026.elf",   -- other watchfaces
+    "/data/mb10p_mgr_hello.elf", "/data/mb10p_mgr_calc_safe.elf", "/data/mb10p_mgr_calc_dec.elf",
+    "/data/mb10p_mgr_pm_inspect.elf", "/data/calc_logo_112.png",
+    "/data/mb10p_com.m0tral.calc_safe.elf", "/data/mb10p_com.m0tral.calc_fix.elf",   -- other watchfaces
+    "/data/mb10p_com.m0tral.calc_dec.elf", "/data/mb10p_hello_3.201.026.elf",
     "/data/app/launcher/launcher.db", "/data/persist.db", "/data/nobusiness",
 }
 local SNAP_PROPS = { "persist.record_app_install", "persist.app_func_bitmap",
@@ -865,10 +891,10 @@ local function do_snap()
     if rows then
         table.sort(names)
         put("modules", table.concat(names, ","))
-        for _, a in ipairs(APPS) do put("mod." .. a.key, rows[a.module] and "loaded" or "absent") end
+        for _, a in ipairs(MODS) do put("mod." .. a.module, rows[a.module] and "loaded" or "absent") end
     else
         put("modules", "UNKNOWN", false)
-        for _, a in ipairs(APPS) do put("mod." .. a.key, "UNKNOWN", false) end
+        for _, a in ipairs(MODS) do put("mod." .. a.module, "UNKNOWN", false) end
     end
     for _, p in ipairs(SNAP_FILES) do
         local fp = fingerprint(p, 131072)
@@ -882,10 +908,10 @@ local function do_snap()
     local dm = dmesg_merge()
     if dm then
         local _, acc = read_acc()
-        for _, a in ipairs(APPS) do
+        for _, t in ipairs(TAGS) do
             local n = 0
-            for _, l in ipairs(acc) do if l:find(a.tag, 1, true) then n = n + 1 end end
-            put("dmesg." .. a.key, n)
+            for _, l in ipairs(acc) do if l:find(t, 1, true) then n = n + 1 end end
+            put("dmesg." .. t:gsub("[%[%]]", ""), n)
         end
     else
         put("dmesg", "UNKNOWN", false)
@@ -1041,6 +1067,7 @@ log_panel:onClicked(function()
 end)
 
 begin("OPEN")
+say("NativeMgr " .. MGR_BUILD)
 say("Log: " .. LOG_FILE)
 if not fw_ok then
     say("fw '" .. tostring(fw_boot) .. "'" .. (fw_boot_why and (" " .. fw_boot_why) or "") .. " need " .. EXPECT_FW)

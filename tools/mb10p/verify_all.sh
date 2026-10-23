@@ -13,7 +13,7 @@ H=platform/mb10p/fw_3.201.026/miwear_system.h
 echo "== 1. reproducible build (clean rebuild must equal committed dist/)"
 rm -rf build/3.201.026
 sh build_mb10p.sh 3201026 >/dev/null 2>&1 && ok "build_mb10p.sh 3201026 (-Werror on tools)" || bad "build failed"
-for f in mb10p_hello mb10p_app_safe mb10p_pm_inspect; do
+for f in mb10p_hello mb10p_app_safe mb10p_pm_inspect mb10p_calc_dec; do
   cmp -s build/3.201.026/$f.elf $D/$f.elf && ok "$f.elf identical to dist/" || bad "$f.elf differs from dist/"
 done
 cmp -s build/3.201.026/experimental/mb10p_pm_remove.elf $D/experimental/mb10p_pm_remove.elf && ok "experimental/mb10p_pm_remove.elf identical" || bad "pm_remove differs"
@@ -23,10 +23,15 @@ arm-none-eabi-objcopy -O binary --only-section=.data build/3.201.026/mb10p_app_s
 [ "$(cmp -l $B0 $B1 | wc -l)" = 1 ] && [ "$(cmp -l $B0 $B1 | awk '{print $2" "$3}')" = "0 10" ] && ok "app_safe_nr differs from the tested app_safe by exactly one .data byte (flags 0x00 -> 0x08)" || bad "app_safe_nr differs by more than the flags byte"
 arm-none-eabi-objdump -d -j .text build/3.201.026/mb10p_app_safe.elf | tail -n +4 | cmp -s - <(arm-none-eabi-objdump -d -j .text $D/experimental/mb10p_app_safe_nr.elf | tail -n +4) && ok "app_safe_nr .text identical to app_safe" || bad ".text differs"
 (cd $D && sha256sum -c SHA256SUMS >/dev/null 2>&1) && ok "dist/SHA256SUMS" || bad "dist/SHA256SUMS"
+[ "$(sha256sum $D/mb10p_calc_dec.elf | cut -d' ' -f1)" = f6251c3358363147172c8fb3a0b1b17abd4f223df135c7b8ae131c18dcecc496 ] \
+  && ok "mb10p_calc_dec.elf is the module that passed on the band (f6251c33..)" || bad "mb10p_calc_dec.elf is not the hardware-tested f6251c33.. (see mb10pro/ui_dec/README.md)"
+[ "$(diff <(git show 8600e41:mb10pro/ui/calc_page.c 2>/dev/null) mb10pro/ui_dec/calc_page.c | grep -c '^[<>]')" = 2 ] \
+  && ok "ui_dec/calc_page.c = 8600e41 + one changed line" || echo "INFO  8600e41 not in this clone: ui_dec/calc_page.c provenance checked by the ELF hash only"
+cmp -s build/3.201.026/mb10p_app_safe.elf $D/mb10p_app_safe.elf && ok "Calc Safe ELF unchanged by the decimal page (float calc_page.c)" || bad "Calc Safe ELF changed"
 
 echo "== 2. ELF structure (relocations, Thumb bit, init/fini, absolutes, ABI)"
 ALLOWED=$(grep -o -i '0x[0-9a-f]\{8\}' $H | tr 'a-f' 'A-F' | sed 's/^0X/0x/' | sort -u)
-for f in $D/mb10p_hello.elf $D/mb10p_app_safe.elf $D/mb10p_pm_inspect.elf $D/experimental/mb10p_pm_remove.elf $D/experimental/mb10p_app_safe_nr.elf; do
+for f in $D/mb10p_hello.elf $D/mb10p_app_safe.elf $D/mb10p_pm_inspect.elf $D/mb10p_calc_dec.elf $D/experimental/mb10p_pm_remove.elf $D/experimental/mb10p_app_safe_nr.elf; do
   n=$(basename $f)
   readelf -h $f | grep -q 'REL (Relocatable' && ok "$n ET_REL" || bad "$n not ET_REL"
   readelf -h $f | grep -q 'Machine:.*ARM' && readelf -h $f | grep -q 'ELF32' && ok "$n EM_ARM ELF32" || bad "$n arch"
@@ -62,15 +67,16 @@ echo "== 3. embedded copies match dist/ and manager manifest matches files"
 cmp -s $D/mb10p_hello.elf mb10pro/wf_native_hello_test/app/lua/mb10p_hello_3.201.026.elf && ok "hello_test embeds dist hello" || bad "hello_test ELF differs"
 cmp -s $D/mb10p_hello.elf mb10pro/wf_native_hello/app/lua/mb10p_hello_3.201.026.elf && ok "wf_native_hello embeds dist hello" || bad "wf_native_hello ELF differs"
 cmp -s $D/mb10p_app_safe.elf mb10pro/wf_native_calc_safe/app/lua/mb10p_app_safe_3.201.026.elf && ok "wf_native_calc_safe embeds dist app_safe" || bad "calc_safe ELF differs"
+cmp -s $D/mb10p_calc_dec.elf mb10pro/wf_native_calc_dec/app/lua/mb10p_calc_dec_3.201.026.elf && ok "wf_native_calc_dec embeds dist calc_dec" || bad "calc_dec ELF differs"
 M=mb10pro/wf_native_manager/app/lua
-cmp -s $D/mb10p_hello.elf $M/mb10p_hello_3.201.026.elf && cmp -s $D/mb10p_app_safe.elf $M/mb10p_app_safe_3.201.026.elf && cmp -s $D/mb10p_pm_inspect.elf $M/mb10p_pm_inspect_3.201.026.elf && ok "manager embeds dist ELFs" || bad "manager ELFs differ"
+cmp -s $D/mb10p_hello.elf $M/mb10p_hello_3.201.026.elf && cmp -s $D/mb10p_app_safe.elf $M/mb10p_app_safe_3.201.026.elf && cmp -s $D/mb10p_calc_dec.elf $M/mb10p_calc_dec_3.201.026.elf && cmp -s $D/mb10p_pm_inspect.elf $M/mb10p_pm_inspect_3.201.026.elf && ok "manager embeds dist ELFs" || bad "manager ELFs differ"
 ls $M | grep -q 'pm_remove' && bad "experimental remover must NOT be in the manager package" || ok "remover not packaged in manager"
 cp $M/main.lua /tmp/mb10p_main_before.lua
-python3 tools/mb10p/gen_manifest.py $M mb10p_hello_3.201.026.elf mb10p_app_safe_3.201.026.elf mb10p_pm_inspect_3.201.026.elf calc_logo_112.png >/dev/null
+python3 tools/mb10p/gen_manifest.py $M mb10p_hello_3.201.026.elf mb10p_app_safe_3.201.026.elf mb10p_calc_dec_3.201.026.elf mb10p_pm_inspect_3.201.026.elf calc_logo_112.png >/dev/null
 cmp -s $M/main.lua /tmp/mb10p_main_before.lua && ok "manager MANIFEST up to date" || { bad "manager MANIFEST was stale (regenerated: commit it)"; }
 
 echo "== 4. Lua syntax + logic tests (mock shell)"
-for l in mb10pro/wf_native_manager/app/lua/main.lua mb10pro/wf_native_hello_test/app/lua/main.lua mb10pro/wf_native_calc_safe/app/lua/main.lua mb10pro/wf_native_hello/app/lua/main.lua; do
+for l in mb10pro/wf_native_manager/app/lua/main.lua mb10pro/wf_native_hello_test/app/lua/main.lua mb10pro/wf_native_calc_safe/app/lua/main.lua mb10pro/wf_native_calc_dec/app/lua/main.lua mb10pro/wf_native_hello/app/lua/main.lua; do
   luac -p $l && ok "luac -p $l" || bad "syntax $l"
 done
 TM=$(lua5.4 tools/mb10p/test_manager.lua $M | tail -1)
@@ -82,7 +88,9 @@ echo "$FT" | grep -q 'CHECKS OK' && ok "test_face_id.py ($FT)" || bad "test_face
 FP=$(python3 tools/mb10p/test_face_pack.py | tail -1)
 echo "$FP" | grep -q 'CHECKS OK' && ok "test_face_pack.py ($FP)" || bad "test_face_pack.py ($FP)"
 BF=$(python3 tools/mb10p/test_build_faces.py | tail -1)
-echo "$BF" | grep -q 'CHECKS OK' && ok "test_build_faces.py: .face pipeline deterministic, hello_py = hardware-PASS package ($BF)" || bad "test_build_faces.py ($BF)"
+echo "$BF" | grep -q 'CHECKS OK' && ok "test_build_faces.py: .face pipeline deterministic, hello_py and calc_dec = hardware-PASS packages ($BF)" || bad "test_build_faces.py ($BF)"
+CL=$(lua5.4 tools/mb10p/test_calc_dec_loader.lua mb10pro/wf_native_calc_dec/app/lua/main.lua | tail -1)
+echo "$CL" | grep -q 'CHECKS OK' && ok "test_calc_dec_loader.lua ($CL)" || bad "test_calc_dec_loader.lua ($CL)"
 lua5.4 tools/mb10p/test_hello_loader.lua mb10pro/wf_native_hello_test/app/lua/main.lua $D/mb10p_hello.elf | tail -1 | grep -q 'ALL SCENARIOS OK' && ok "test_hello_loader.lua" || bad "test_hello_loader.lua"
 python3 - $M/main.lua <<'PYEOF' && ok "manager can only run getprop/lsmod/dmesg/cp/insmod/rmmod/ls/free (static check)" || bad "manager command set"
 import re, sys
@@ -108,7 +116,7 @@ import re
 rows = [l.rstrip('\n').split('\t') for l in open('tools/mb10p/face_ids.tsv') if l.strip() and not l.startswith('id\t')]
 ids = [r[0] for r in rows]
 ok = len(ids) == len(set(ids)) and all(len(i) == 9 and i.isdigit() for i in ids)
-for proj, title in (('wf_native_hello', 'Hello'), ('wf_native_calc_safe', 'Calc safe'), ('wf_native_manager', 'NativeMgr')):
+for proj, title in (('wf_native_hello', 'Hello'), ('wf_native_calc_safe', 'Calc safe'), ('wf_native_calc_dec', 'Calc dec'), ('wf_native_manager', 'NativeMgr')):
     t = re.search(r'Screen Title="([^"]*)"', open('mb10pro/%s/module.fprj' % proj).read()).group(1)
     ok = ok and t == title and any(r[1] == title for r in rows)
 raise SystemExit(0 if ok else 1)

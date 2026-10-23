@@ -7,7 +7,7 @@
 local DIR = assert(arg[1], "need the app/lua directory"):gsub("/$", "")
 local function readfile(p) local f = assert(io.open(p, "rb")) local d = f:read("*a") f:close() return d end
 local MAIN = readfile(DIR .. "/main.lua")
-local PKGNAMES = { "mb10p_hello_3.201.026.elf", "mb10p_app_safe_3.201.026.elf",
+local PKGNAMES = { "mb10p_hello_3.201.026.elf", "mb10p_app_safe_3.201.026.elf", "mb10p_calc_dec_3.201.026.elf",
                    "mb10p_pm_inspect_3.201.026.elf", "calc_logo_112.png" }
 local PKG = {}
 for _, n in ipairs(PKGNAMES) do PKG["/pkg/" .. n] = readfile(DIR .. "/" .. n) end
@@ -269,8 +269,9 @@ local function count(W, prog)
     return n
 end
 local function mutations(W) return count(W, "cp") + count(W, "insmod") + count(W, "rmmod") end
+local function ran(W, cmd) for _, c in ipairs(W.cmds) do if c == cmd then return true end end return false end
 local function pick(W, key)
-    for _ = 1, 3 do
+    for _ = 1, 6 do
         if (W.info.text or ""):find("App: " .. key .. " ", 1, true) then return end
         press(W, "APP")
     end
@@ -863,10 +864,13 @@ with_world(nil, function(W)
     pick(W, "calc_safe")
     press(W, "INSTALL") press(W, "VERIFY") press(W, "REMOVE") press(W, "SNAP")
     W.reboot() boot(W) press(W, "SNAP")
+    pick(W, "calc_dec")
+    press(W, "INSTALL") press(W, "VERIFY") press(W, "REMOVE") press(W, "SNAP")
     local okw, bad = true, nil
     local allowed = { ["/data/mb10p_manager.log"] = true, ["/data/mb10p_manager.log.1"] = true,
                       ["/data/mb10p_snap.last"] = true, ["/data/mb10p_snap.log"] = true, ["/data/mb10p_snap.log.1"] = true,
                       ["/data/mb10p_mgr_hello.elf"] = true, ["/data/mb10p_mgr_calc_safe.elf"] = true,
+                      ["/data/mb10p_mgr_calc_dec.elf"] = true,
                       ["/data/mb10p_mgr_pm_inspect.elf"] = true, ["/data/calc_logo_112.png"] = true }
     for _, w in ipairs(W.writes) do
         local p = w:match(">(.*)$")
@@ -875,7 +879,9 @@ with_world(nil, function(W)
     check("writes only to manager files (/tmp/mb10p_*, own /data files)", okw, bad)
     check("/data/nobusiness never created", W.fs["/data/nobusiness"] == nil)
     check("launcher.db and persist.db untouched", W.fs["/data/app/launcher/launcher.db"] == string.rep("L", 5000) and W.fs["/data/persist.db"] == string.rep("P", 3000))
-    check("other watchfaces' /data files never written", W.fs["/data/mb10p_com.m0tral.calc_safe.elf"] == nil and W.fs["/data/mb10p_hello_3.201.026.elf"] == nil)
+    check("other watchfaces' /data files never written", W.fs["/data/mb10p_com.m0tral.calc_safe.elf"] == nil and W.fs["/data/mb10p_hello_3.201.026.elf"] == nil
+          and W.fs["/data/mb10p_com.m0tral.calc_dec.elf"] == nil and W.fs["/data/mb10p_com.m0tral.calc_fix.elf"] == nil)
+    check("calc_dec was really installed in this session", ran(W, "insmod /data/mb10p_mgr_calc_dec.elf calc_safe") and W.fs["/data/mb10p_mgr_calc_dec.elf"] ~= nil)
 end)
 
 -- Lua sandbox without os.remove / os.rename
@@ -898,6 +904,128 @@ with_world({ numeric = true }, function(W)
     pick(W, "hello")
     local m = press(W, "INSTALL")
     check("Lua 5.1-style numeric os.execute", m:find("PASS", 1, true), m)
+end)
+
+
+---------------------------------------------------------------- calc_dec (decimal calculator)
+local CALC_ROW = "calc_safe 0x2c0a7777 0x2c0b0000 0 0 0"
+local function foreign_calc(W, name)          -- a calculator loaded by another watchface this boot
+    W.mods[name] = (name == "calc_safe") and CALC_ROW or (name .. " 0x2c0a8888 0x2c0b0000 0 0 0")
+    W.order[#W.order + 1] = name
+end
+
+with_world(nil, function(W)
+    check("open screen names the manager build", has(W, "NativeMgr r2 2026-10-23"), all_pages(W))
+    pick(W, "calc_dec")
+    check("calc_dec is a registering app", (W.info.text or ""):find("App: calc_dec (registering)", 1, true) ~= nil, W.info.text)
+    local m = press(W, "INSTALL")
+    check("calc_dec install PASS; own /data file holds the packaged ELF",
+          m:find("PASS", 1, true) and W.fs["/data/mb10p_mgr_calc_dec.elf"] == PKG["/pkg/mb10p_calc_dec_3.201.026.elf"], m)
+    check("calc_dec insmod: own file, module name calc_safe", ran(W, "insmod /data/mb10p_mgr_calc_dec.elf calc_safe"), table.concat(W.cmds, " | "))
+    check("calc_dec never writes the Calc dec / Calc safe watchface files",
+          W.fs["/data/mb10p_com.m0tral.calc_dec.elf"] == nil and W.fs["/data/mb10p_com.m0tral.calc_safe.elf"] == nil)
+    check("calc_dec shares the logo without overwriting it", W.fs["/data/calc_logo_112.png"] == PKG["/pkg/calc_logo_112.png"])
+    m = press(W, "VERIFY")
+    check("calc_dec VERIFY PASS (registration lines)", m:find("PASS", 1, true), m)
+    m = press(W, "REMOVE")
+    check("calc_dec REMOVE refused, never rmmod", m:find("REFUSED", 1, true) and count(W, "rmmod") == 0, m)
+    press(W, "SCAN")
+    check("SCAN: calc_dec loaded(ours), calc_safe loaded(as calc_dec)",
+          has(W, "calc_dec: loaded(ours)") and has(W, "calc_safe: loaded(as calc_dec)"), all_pages(W))
+    pick(W, "calc_safe")
+    m = press(W, "INSTALL")
+    check("calc_safe refused while calc_dec is loaded (same app id)", m:find("REFUSED", 1, true) and count(W, "insmod") == 1, m)
+    W.reboot() boot(W)
+    pick(W, "calc_dec")
+    press(W, "SCAN")
+    check("after reboot calc_dec absent", has(W, "calc_dec: absent"), all_pages(W))
+    m = press(W, "INSTALL")
+    check("calc_dec installs again after reboot (stale /data file re-verified)", m:find("PASS", 1, true) and count(W, "insmod") == 1, m)
+end)
+
+with_world(nil, function(W)
+    pick(W, "calc_safe")
+    press(W, "INSTALL")
+    pick(W, "calc_dec")
+    local m = press(W, "INSTALL")
+    check("calc_dec refused after calc_safe (no second 0xC1 module, nothing copied)",
+          m:find("REFUSED", 1, true) and count(W, "insmod") == 1 and W.fs["/data/mb10p_mgr_calc_dec.elf"] == nil, m)
+end)
+
+for _, name in ipairs({ "calc_safe", "mb10p_app" }) do
+    with_world(nil, function(W)
+        foreign_calc(W, name)
+        pick(W, "calc_dec")
+        local m = press(W, "INSTALL")
+        check("calc_dec refused when " .. name .. " was loaded by another watchface (no cp, no insmod)",
+              m:find("REFUSED", 1, true) and count(W, "insmod") == 0 and count(W, "cp") == 0, m)
+        if name == "calc_safe" then
+            press(W, "SCAN")
+            check("SCAN: foreign calc_safe module shown as loaded(?)", has(W, "calc_dec: loaded(?)"), all_pages(W))
+            m = press(W, "REMOVE")
+            check("foreign calc_safe module: REMOVE refused, no rmmod", m:find("REFUSED", 1, true) and count(W, "rmmod") == 0, m)
+        end
+    end)
+end
+
+with_world({ fw = "3.201.016" }, function(W)
+    pick(W, "calc_dec")
+    local m = press(W, "INSTALL")
+    check("calc_dec: other firmware -> INSTALL refused, nothing copied", m:find("REFUSED", 1, true) and mutations(W) == 0, m)
+end)
+
+with_world({ cust = "CONBINE_LTALM080_T3.201.026_00000000" }, function(W)
+    pick(W, "calc_dec")
+    local m = press(W, "INSTALL")
+    check("calc_dec: customer_version mismatch -> refused", m:find("REFUSED", 1, true) and mutations(W) == 0, m)
+end)
+
+with_world({ throw_on = "^insmod /data/mb10p_mgr_calc_dec" }, function(W)
+    pick(W, "calc_dec")
+    local m = press(W, "INSTALL")
+    check("calc_dec: Lua error at insmod -> LOCKED", m:find("LOCKED", 1, true), m)
+    m = press(W, "INSTALL")
+    check("calc_dec: locked manager refuses the next INSTALL", m:find("REFUSED", 1, true) and count(W, "insmod") == 1, m)
+end)
+
+with_world(nil, function(W)
+    pick(W, "calc_dec")
+    W.fs["/tmp/mb10p_mgr.pending"] = "INSTALL calc_dec at insmod\n"   -- watchface killed mid-INSTALL
+    boot(W)
+    pick(W, "calc_dec")
+    local m = press(W, "INSTALL")
+    check("calc_dec: interrupted INSTALL adopted at open -> refused until reboot", m:find("REFUSED", 1, true) and count(W, "insmod") == 0, m)
+    W.reboot() boot(W)
+    pick(W, "calc_dec")
+    m = press(W, "INSTALL")
+    check("calc_dec: reboot clears the lock", m:find("PASS", 1, true), m)
+end)
+
+with_world({ cp_corrupt = true }, function(W)
+    pick(W, "calc_dec")
+    local m = press(W, "INSTALL")
+    check("calc_dec: corrupt copy -> FAIL before insmod", m:find("FAIL", 1, true) and count(W, "insmod") == 0, m)
+end)
+
+with_world(nil, function(W)
+    W.fs["/pkg/mb10p_calc_dec_3.201.026.elf"] = PKG["/pkg/mb10p_app_safe_3.201.026.elf"]   -- wrong ELF in the package
+    pick(W, "calc_dec")
+    local m = press(W, "INSTALL")
+    check("calc_dec: packaged ELF not matching the manifest -> FAIL, no cp", m:find("FAIL", 1, true) and count(W, "cp") == 0, m)
+end)
+
+with_world(nil, function(W)
+    pick(W, "calc_dec")
+    press(W, "SNAP")
+    press(W, "INSTALL")
+    press(W, "SNAP")
+    local snap = W.fs["/data/mb10p_snap.last"] or ""
+    check("SNAP: one key per module (mod.calc_safe), no per-app duplicate",
+          snap:find("mod.calc_safe=loaded", 1, true) ~= nil and snap:find("mod.calc_dec", 1, true) == nil, snap)
+    check("SNAP records the calc_dec manager file and the Calc dec / Calc fix watchface paths",
+          snap:find("file./data/mb10p_mgr_calc_dec.elf=7836:", 1, true) ~= nil
+          and snap:find("file./data/mb10p_com.m0tral.calc_dec.elf=ABSENT", 1, true) ~= nil
+          and snap:find("file./data/mb10p_com.m0tral.calc_fix.elf=ABSENT", 1, true) ~= nil, snap)
 end)
 
 for _, r in ipairs(results) do print(r) end

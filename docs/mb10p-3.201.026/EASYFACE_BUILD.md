@@ -26,7 +26,8 @@ Kết quả (`build/faces/3.201.026/`, không đưa vào git):
 |---|---|---|---|---|
 | `hello_py_193824675.face` | 193824675 | Hello py | `wf_native_hello` (fprj, preview) + `wf_native_hello_test` (`app/lua`) | **PASS** – chính tệp này (SHA-256 `0e2491eb…3078c50`) |
 | `calc_safe_193824671.face` | 193824671 | Calc safe | `wf_native_calc_safe` | gói do packer tạo **chưa cài**; build với ID `167210065` thì trùng từng byte `Calc_safe.face` của EasyFace |
-| `native_mgr_193824672.face` | 193824672 | NativeMgr | `wf_native_manager` | **chưa thử trên máy** (cả packer lẫn EasyFace); preview **RGB không alpha** – chưa so với EasyFace, chưa thử trên máy |
+| `native_mgr_193824672.face` | 193824672 | NativeMgr | `wf_native_manager` | bản packer r2 **chưa thử trên máy**; bản EasyFace trước r2 đã PASS (chủ thiết bị báo); preview PNG RGB |
+| `calc_dec_193824674.face` | 193824674 | Calc dec | `wf_native_calc_dec` | **PASS** – chính tệp này (SHA-256 `abcb50dc…7f127f8f`); số 17 ký tự bị khung hiển thị cắt chữ số cuối |
 
 cùng `SHA256SUMS` và `BUILD_INFO.txt` (commit nguồn, danh sách tệp, trạng thái phần cứng từng gói).
 
@@ -49,7 +50,7 @@ SHA-256 với `dist/mb10p-3.201.026/SHA256SUMS`, như cách B.
 Kiểm offline (đã nằm trong `verify_all.sh`):
 ```sh
 python3 tools/mb10p/test_face_pack.py     # 17 kiểm tra packer (thêm: <thư mục chứa Hello.face, Calc_safe.face> -> 19, so từng byte với EasyFace)
-python3 tools/mb10p/test_build_faces.py   # 20 kiểm tra: build hết, tất định, hello_py = gói PASS, các trường hợp từ chối
+python3 tools/mb10p/test_build_faces.py   # 22 kiểm tra: build hết, tất định, hello_py và calc_dec = gói PASS, các trường hợp từ chối
 ```
 
 ## 2b. Cách B (dự phòng): EasyFace v4.23
@@ -63,6 +64,7 @@ mb10pro/wf_native_manager/
   app/lua/main.lua                 Manager
   app/lua/mb10p_hello_3.201.026.elf
   app/lua/mb10p_app_safe_3.201.026.elf
+  app/lua/mb10p_calc_dec_3.201.026.elf
   app/lua/mb10p_pm_inspect_3.201.026.elf
   app/lua/calc_logo_112.png
 ```
@@ -79,7 +81,7 @@ Không có ELF thử nghiệm (`pm_remove`, `app_safe_nr`) trong gói (kiểm b�
    py tools\mb10p\face_id.py check NativeMgr_193824672.face --id 193824672 --title NativeMgr
    py tools\mb10p\face_id.py extract NativeMgr_193824672.face out
    ```
-4. Đối chiếu SHA-256 do `extract` in ra với `dist/mb10p-3.201.026/SHA256SUMS` (3 ELF) và `main.lua` trong repo. Khác → không cài.
+4. Đối chiếu SHA-256 do `extract` in ra với `dist/mb10p-3.201.026/SHA256SUMS` (4 ELF) và `main.lua` trong repo. Khác → không cài.
 5. Cài `NativeMgr_193824672.face`, rồi làm theo `HARDWARE_TEST_MANAGER_HELLO.md`.
 
 ## 3. Watchface ID: EasyFace lưu ở đâu
@@ -140,9 +142,9 @@ trên Smart Band 10 Pro Global `3.201.026`: cài được, mở được, CHECK 
 đúng tệp này (`hello_py_193824675.face`) từ nguồn hiện tại.
 
 Phạm vi của kết quả đó – **chưa** được chứng minh trên máy:
-- **Preview RGB (PNG không alpha).** Gói PASS dùng preview RGBA; packer ghi RGB thành BGRA alpha 255, nhưng chưa có gói EasyFace
-  nào có preview RGB để so, và chưa cài gói nào như vậy. `native_mgr` là gói duy nhất hiện dùng preview RGB.
-- **Gói nhiều tệp hơn / tệp không phải ELF.** Gói PASS có 2 tệp (`main.lua`, một ELF). `calc_safe` (3 tệp, có PNG) chỉ được
-  chứng minh trùng byte với EasyFace (ID mặc định), bản packer chưa cài; `native_mgr` (5 tệp) chưa cài.
+- **Preview từ PNG RGB.** Trong gói, preview luôn là BGRA; PNG RGB thành alpha 255. Chưa có gói EasyFace nào từ preview RGB
+  để so, và chưa cài gói packer nào như vậy. `native_mgr` là gói duy nhất hiện dùng PNG RGB.
+- **Gói nhiều tệp.** Đã PASS: `Hello py` (2 tệp) và `Calc dec` (3 tệp: `main.lua`, ELF, PNG). `native_mgr` (6 tệp, 4 ELF) bản
+  packer chưa cài; bản EasyFace trước đó đã PASS.
 - **Dạng project khác** (DeviceType khác 567, nhiều widget, ảnh/tài nguyên EasyFace khác, thư mục con…): packer từ chối, dùng EasyFace.
 - Firmware khác `3.201.026`: chưa thử.

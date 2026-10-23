@@ -15,6 +15,7 @@ sys.path.insert(0, HERE)
 import face_id                                              # noqa: E402
 
 HW_HELLO_PY = '0e2491ebcd77ef8cb6294b326008a90b25d912510acbce2bcafe27d7e3078c50'
+HW_CALC_DEC = 'abcb50dca04f2ef2407f43995ce6b6761baa16ea16ea0ee55566026d7f127f8f'
 
 
 def run(*args, root=None):
@@ -29,7 +30,7 @@ def fake_root(t, name):
     """Minimal copy of the inputs build_faces.py reads (including the scripts' registry files)."""
     r = os.path.join(t, name)
     for d in ('mb10pro/wf_native_hello', 'mb10pro/wf_native_hello_test', 'mb10pro/wf_native_calc_safe',
-              'mb10pro/wf_native_manager', 'dist/mb10p-3.201.026'):
+              'mb10pro/wf_native_manager', 'mb10pro/wf_native_calc_dec', 'dist/mb10p-3.201.026'):
         shutil.copytree(os.path.join(REPO, d), os.path.join(r, d), symlinks=True)
     os.makedirs(os.path.join(r, 'tools', 'mb10p'))
     for f in ('face_targets.tsv', 'face_ids.tsv'):
@@ -47,11 +48,14 @@ def main():
 
     rc, out = run('--out', t + '/a')
     names = sorted(f for f in os.listdir(t + '/a')) if rc == 0 else []
-    check('all targets build', rc == 0 and names == ['BUILD_INFO.txt', 'SHA256SUMS', 'calc_safe_193824671.face',
+    check('all targets build', rc == 0 and names == ['BUILD_INFO.txt', 'SHA256SUMS', 'calc_dec_193824674.face', 'calc_safe_193824671.face',
                                                      'hello_py_193824675.face', 'native_mgr_193824672.face'], out)
     hp = open(t + '/a/hello_py_193824675.face', 'rb').read() if rc == 0 else b''
     check('hello_py equals the package that passed on the band (sha256 %s..)' % HW_HELLO_PY[:12],
           hashlib.sha256(hp).hexdigest() == HW_HELLO_PY)
+    cd = open(t + '/a/calc_dec_193824674.face', 'rb').read() if rc == 0 else b''
+    check('calc_dec equals the package that passed on the band (sha256 %s..)' % HW_CALC_DEC[:12],
+          hashlib.sha256(cd).hexdigest() == HW_CALC_DEC)
     ok = rc == 0
     for line in (open(t + '/a/SHA256SUMS').read().split('\n') if ok else []):
         if line:
@@ -61,7 +65,7 @@ def main():
     check('SHA256SUMS matches and every package passes face_id.parse with its ID', ok)
     info = open(t + '/a/BUILD_INFO.txt').read() if rc == 0 else ''
     check('BUILD_INFO records the hardware status per target',
-          'hardware: PASS 2026-10-23' in info and info.count('NOT hardware-tested') == 1 and 'RGB preview' in info)
+          info.count('hardware: PASS 2026-10-23') == 2 and info.count('NOT hardware-tested') == 1 and 'RGB preview' in info)
     rc2, out2 = run('--out', t + '/b')
     same = rc2 == 0 and all(open(os.path.join(t, 'a', n), 'rb').read() == open(os.path.join(t, 'b', n), 'rb').read()
                             for n in names if n.endswith('.face'))
@@ -100,6 +104,9 @@ def main():
            edit('dist/mb10p-3.201.026/mb10p_hello.elf', b'\x7fELF\x01', b'\x7fELF\x02'), 'SHA256SUMS')
     refuse('a hello_py source change (no longer the hardware-confirmed file)',
            edit(L + 'main.lua', b'Hello', b'Hallo'), 'hardware-confirmed')
+    refuse('a calc_dec loader change (no longer the hardware-confirmed file)',
+           edit('mb10pro/wf_native_calc_dec/app/lua/main.lua', b'Calc dec ready', b'Calc dec READY'), 'hardware-confirmed',
+           target='calc_dec')
     refuse('a symlink in app/lua', lambda r: os.symlink('main.lua', os.path.join(r, L, 'link.lua')), 'not a plain file')
     refuse('a hidden file in app/lua', lambda r: open(os.path.join(r, L, '.x'), 'w').write('x'), 'hidden')
     refuse('an ID missing from face_ids.tsv', edit('tools/mb10p/face_ids.tsv', b'193824675\t', b'193824699\t'),

@@ -30,7 +30,7 @@ Build chính xác (cờ trong `build_mb10p.sh`): `-mcpu=cortex-m33 -mthumb -ffre
 ```sh
 # sau khi thay ELF trong mb10pro/wf_native_manager/app/lua/:
 python3 tools/mb10p/gen_manifest.py mb10pro/wf_native_manager/app/lua \
-  mb10p_hello_3.201.026.elf mb10p_app_safe_3.201.026.elf mb10p_pm_inspect_3.201.026.elf calc_logo_112.png
+  mb10p_hello_3.201.026.elf mb10p_app_safe_3.201.026.elf mb10p_calc_dec_3.201.026.elf mb10p_pm_inspect_3.201.026.elf calc_logo_112.png
 ```
 Thư mục watchface: `wf_native_hello` (upstream, thêm hàng 3.201.026), `wf_native_hello_test` (loader quan sát được), `wf_native_calc_safe`,
 `wf_native_manager`. Mỗi cái cần **ID package duy nhất** (`tools/mb10p/face_ids.tsv`; cách đặt: `EASYFACE_BUILD.md`).
