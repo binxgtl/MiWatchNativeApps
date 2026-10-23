@@ -52,6 +52,10 @@ done
 for f in $D/mb10p_hello.elf $D/mb10p_pm_inspect.elf $D/experimental/mb10p_pm_remove.elf; do
   arm-none-eabi-objdump -d -j .text $f | grep -E -q '\bv(add|mul|ldr|mov|cvt|sub|div)' && bad "$(basename $f) FP instruction in soft-float module" || ok "$(basename $f) no FP instructions (soft-float)"
 done
+PMDIS=$(arm-none-eabi-objdump -d -j .text $D/mb10p_pm_inspect.elf)
+{ echo "$PMDIS" | grep -qE '\bldr(\.w)?\s+r[0-9]+, \[r[0-9]+, r[0-9]+' || echo "$PMDIS" | grep -oE '\bldr(\.w)?\s+[a-z0-9]+, \[[a-z0-9]+, #[0-9]+\]' | awk -F'#' '{if (($2+0)%4) f=1} END {exit !f}'; } \
+  && bad "mb10p_pm_inspect.elf has a register-offset or unaligned-offset 32-bit LDR on firmware structures" \
+  || ok "mb10p_pm_inspect.elf: every 32-bit LDR uses a 4-aligned immediate offset (u16 flags at node+0x12 read with LDRH)"
 readelf -A $D/mb10p_app_safe.elf | grep -q 'FP_arch\|VFP' && ok "mb10p_app_safe uses the FPv5 single-precision ABI (hard-float)" || echo "INFO  app_safe FP attribute not shown"
 
 echo "== 3. embedded copies match dist/ and manager manifest matches files"

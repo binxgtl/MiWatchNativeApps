@@ -79,6 +79,12 @@ __attribute__((unused)) static uint32_t rd32(uint32_t base, uint32_t off) { retu
 __attribute__((unused)) static uint32_t rd16(uint32_t base, uint32_t off) { return *(volatile uint16_t *)(base + off); }
 __attribute__((unused)) static uint32_t rd8 (uint32_t base, uint32_t off) { return *(volatile uint8_t  *)(base + off); }
 
+/* Fixed-offset 32-bit read: the offset must be 4-aligned (bases are checked by
+ * plausible()), so no LDR can be unaligned. Checked at compile time. */
+#define RD32C(base, off) (__extension__({ \
+    _Static_assert(((off) & 3u) == 0, "32-bit field offset " #off " is not 4-aligned"); \
+    rd32((base), (off)); }))
+
 #define PAGES_MAX 8u
 
 #ifdef PM_TOOL_INSPECT
@@ -104,21 +110,27 @@ static void snapshot(int force)
         syslog(LOG_ERR, TAG " BAD node=0x%08x\n", node);
         return;
     }
-    uint32_t pages = rd32(node, 0x30);
+    uint32_t pages = RD32C(node, 0x30);
     uint32_t cnt   = plausible(pages) ? rd16(pages, 0) : 0;
     if (cnt > PAGES_MAX) cnt = PAGES_MAX;
 
-    uint32_t offs[] = { 0x12, 0x1C, 0x20, 0x24, 0x28, 0x38, 0x30 };
-    for (unsigned i = 0; i < sizeof offs / sizeof offs[0]; i++)
-        sig = sig_mix(sig, rd32(node, offs[i]));
+    /* +0x12 is the u16 flags field: read it as 16 bits. (A 32-bit read there was
+     * unaligned and also mixed in the two bytes at +0x14.) */
+    sig = sig_mix(sig, rd16(node, 0x12));
+    sig = sig_mix(sig, RD32C(node, 0x1C));
+    sig = sig_mix(sig, RD32C(node, 0x20));
+    sig = sig_mix(sig, RD32C(node, 0x24));
+    sig = sig_mix(sig, RD32C(node, 0x28));
+    sig = sig_mix(sig, RD32C(node, 0x38));
+    sig = sig_mix(sig, pages);
     for (uint32_t i = 0; i < cnt; i++) {
         uint32_t pg = rd32(pages, 8 + 4 * i);
         if (!plausible(pg)) continue;
         sig = sig_mix(sig, rd8(pg, 0x28));
-        sig = sig_mix(sig, rd32(pg, 0x24));
-        sig = sig_mix(sig, rd32(pg, 0x30));
-        sig = sig_mix(sig, rd32(pg, 0x40));
-        sig = sig_mix(sig, rd32(pg, 0x44));
+        sig = sig_mix(sig, RD32C(pg, 0x24));
+        sig = sig_mix(sig, RD32C(pg, 0x30));
+        sig = sig_mix(sig, RD32C(pg, 0x40));
+        sig = sig_mix(sig, RD32C(pg, 0x44));
     }
     if (!force && sig == g_prev_sig)
         return;                          /* log only on change */
@@ -126,9 +138,9 @@ static void snapshot(int force)
 
     syslog(LOG_WARN, TAG " NODE seq=%u node=0x%08x flags=0x%04x name=0x%08x icon=0x%08x "
            "cb1c=0x%08x cb20=0x%08x cb24=0x%08x cb28=0x%08x cb38=0x%08x pages=0x%08x unin=0x%08x\n",
-           g_seq, node, rd16(node, 0x12), rd32(node, 8), rd32(node, 0xC),
-           rd32(node, 0x1C), rd32(node, 0x20), rd32(node, 0x24), rd32(node, 0x28),
-           rd32(node, 0x38), pages, unin);
+           g_seq, node, rd16(node, 0x12), RD32C(node, 0x08), RD32C(node, 0x0C),
+           RD32C(node, 0x1C), RD32C(node, 0x20), RD32C(node, 0x24), RD32C(node, 0x28),
+           RD32C(node, 0x38), pages, unin);
     for (uint32_t i = 0; i < cnt; i++) {
         uint32_t pg = rd32(pages, 8 + 4 * i);
         if (!plausible(pg)) {
@@ -138,7 +150,7 @@ static void snapshot(int force)
         syslog(LOG_WARN, TAG " PAGE seq=%u i=%u page=0x%08x pid=%u state=%u layer=%u kind=%u "
                "adestroy=0x%x root=0x%08x prev=0x%08x next=0x%08x\n",
                g_seq, i, pg, rd16(pg, 0x14), rd8(pg, 0x28), rd8(pg, 0x29), rd8(pg, 0x2A),
-               rd32(pg, 0x24), rd32(pg, 0x30), rd32(pg, 0x40), rd32(pg, 0x44));
+               RD32C(pg, 0x24), RD32C(pg, 0x30), RD32C(pg, 0x40), RD32C(pg, 0x44));
     }
 }
 

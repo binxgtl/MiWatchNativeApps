@@ -53,7 +53,7 @@ local PKG_MAX = 1048576
 local MANIFEST = {
     ["mb10p_hello_3.201.026.elf"] = { size = 1388, adler = "9a3983d4" },
     ["mb10p_app_safe_3.201.026.elf"] = { size = 6256, adler = "13a93070" },
-    ["mb10p_pm_inspect_3.201.026.elf"] = { size = 3028, adler = "6eba5cfb" },
+    ["mb10p_pm_inspect_3.201.026.elf"] = { size = 2968, adler = "ebf55792" },
     ["calc_logo_112.png"] = { size = 19531, adler = "fc37a033" },
 }
 -- END MANIFEST

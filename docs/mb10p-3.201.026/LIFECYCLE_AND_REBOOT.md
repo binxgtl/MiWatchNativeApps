@@ -81,6 +81,9 @@ Nạp được ở mọi lúc, mỗi giây đọc nút của `app_id 0xC1` và l
 mảng page, `lifecycle_state` của page, danh sách "đã gỡ", rồi tự dừng timer sau 90 giây và ghi `DONE`.
 Không đăng ký gì, không để lại con trỏ → được phép `rmmod` sau `DONE` (Manager kiểm tra điều này).
 Mở và đóng Calculator trong 90 giây để biết giá trị `state` của page khi đóng/mở.
+Sửa 2026-10-23 (ELF mới, 2968 B): chữ ký "có thay đổi" từng đọc `node+0x12` (trường `flags` u16) bằng một LDR 32 bit không căn
+hàng – có thể UsageFault nếu `UNALIGN_TRP` bật, và trộn thêm 2 byte của `+0x14`. Giờ `flags` đọc bằng LDRH; mọi offset 32 bit cố
+định được `_Static_assert` buộc căn 4 byte, và `verify_all.sh` kiểm trên disassembly. Định dạng log không đổi.
 
 ### Tầng 2 – Thử nghiệm có chốt (mã nguồn có, **chưa nối vào Manager, chưa chạy trên máy**)
 Điều kiện tiên quyết: ứng dụng phải dùng bản **`mb10p_app_safe_nr.elf`** (`-DCALC_APP_FLAGS=0x08`, khác bản đã
