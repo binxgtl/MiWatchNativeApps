@@ -6,8 +6,9 @@
 **Phần cứng:**
 - Bản **EasyFace** của Manager (mã nguồn trước `45629d2`, chưa có `calc_dec`): **PASS** trên Smart Band 10 Pro Global
   3.201.026 (chủ thiết bị báo).
-- Bản **r2** (`MGR_BUILD = "r2 2026-10-23 (pm_inspect LDRH fix, calc_dec)"`), đóng gói bằng `build_faces.py --target native_mgr`:
-  **chưa thử trên máy**. Khác bản đã PASS: `mb10p_pm_inspect.elf` mới (đọc `flags` u16 bằng LDRH), mục `calc_dec`,
+- Bản **r2** (`MGR_BUILD = "r2 2026-10-23 (pm_inspect LDRH fix, calc_dec)"`), đóng gói bằng `build_faces.py --target native_mgr`
+  (`native_mgr_193824672.face`, SHA-256 `d3a5818a…`): **PASS** 2026-10-23 trên máy (chủ thiết bị báo: quy trình cập nhật ở
+  mục 8 và cả 13 bước thử, gồm `calc_dec` và `pm_inspect`). Khác bản đã PASS: `mb10p_pm_inspect.elf` mới (đọc `flags` u16 bằng LDRH), mục `calc_dec`,
   SNAP thêm đường dẫn, khóa SNAP theo module/tag, dòng phiên bản lúc mở và trong log SCAN. Cập nhật: mục 8.
 - Preview của gói là PNG RGB; packer luôn ghi preview dạng BGRA (alpha 255 với RGB), cùng dạng với các gói packer đã PASS.
 Thứ tự thử trên máy: [HARDWARE_TEST_MANAGER_HELLO.md](HARDWARE_TEST_MANAGER_HELLO.md). Đóng gói và ID: [EASYFACE_BUILD.md](EASYFACE_BUILD.md).

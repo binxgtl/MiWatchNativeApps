@@ -19,7 +19,8 @@ mình không nhận được log, ảnh chụp màn hình hay file `.face` nào 
 | A6 | Calculator xuất hiện như một ứng dụng riêng trong launcher của đồng hồ (bạn gọi là HyperOS), không chỉ chạy bên trong watchface | |
 | A7 | Mở Calculator, thao tác cảm ứng và tính toán bình thường | |
 | A9 | 2026-10-23: `Calc dec` (`193824674`), gói tạo bằng `face_pack.py` trên Linux: cài, START, 13/13 phép thử Decimal Calculator đúng, bàn phím không trễ; số 17 ký tự (`0.666666666666667`) bị khung hiển thị cắt chữ số cuối | ELF `f6251c33…` = `8600e41` + dòng `"%s"` (không phải binary của PR); gói `abcb50dc…` |
-| A10 | Native App Manager, bản build bằng EasyFace (mã nguồn trước `45629d2`): PASS | bạn báo; bản r2 đóng gói bằng packer chưa thử |
+| A10 | Native App Manager, bản build bằng EasyFace (mã nguồn trước `45629d2`): PASS | bạn báo |
+| A11 | 2026-10-23: Native App Manager **r2** (`native_mgr_193824672.face`, packer, `d3a5818a…`): cập nhật từ bản EasyFace và cả 13 bước thử PASS – Hello, PM Inspector đã sửa (INSTALL, VERIFY tới DONE, REMOVE), `calc_dec` qua Manager (INSTALL, VERIFY, `99999*99999=9999800001`, REMOVE bị từ chối), `calc_safe` bị từ chối khi `calc_dec` đã nạp, reboot dọn sạch | bạn báo |
 | A8 | 2026-10-23: `Hello py` (`193824675`), gói `.face` tạo bằng `tools/mb10p/face_pack.py` **không qua EasyFace**: cài, mở, CHECK / LOAD / UNLOAD PASS | SHA-256 `0e2491eb…3078c50`; phạm vi: `EASYFACE_BUILD.md` mục 5 |
 
 Điều này chứng minh trên máy thật: nạp ELF `ET_REL` bằng `insmod`, gọi đúng các địa chỉ firmware đã port
@@ -66,7 +67,7 @@ và cái thứ hai bị từ chối. ID nằm trong gói `.face` (chuỗi ASCII 
 |---|---|---|
 | Hello (bản đã build) | `167210065` | bạn báo (ID mặc định của EasyFace) |
 | Calculator Safe | `193824671` | bạn đặt |
-| Native App Manager | `193824672` | bản EasyFace đã cài, PASS (A10); r2 (packer) chưa thử |
+| Native App Manager | `193824672` | r2 (packer) PASS (A11); bản EasyFace trước đó PASS (A10) |
 | Calc dec | `193824674` | đóng gói bằng `build_faces.py`; PASS trên máy (A9) |
 | Hello py (Hello Test, packer) | `193824675` | đóng gói bằng `build_faces.py`; PASS trên máy (A8) |
 | Hello Test | *chọn ID mới, chưa dùng* | – |

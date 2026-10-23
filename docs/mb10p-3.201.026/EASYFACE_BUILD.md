@@ -26,7 +26,7 @@ Kết quả (`build/faces/3.201.026/`, không đưa vào git):
 |---|---|---|---|---|
 | `hello_py_193824675.face` | 193824675 | Hello py | `wf_native_hello` (fprj, preview) + `wf_native_hello_test` (`app/lua`) | **PASS** – chính tệp này (SHA-256 `0e2491eb…3078c50`) |
 | `calc_safe_193824671.face` | 193824671 | Calc safe | `wf_native_calc_safe` | gói do packer tạo **chưa cài**; build với ID `167210065` thì trùng từng byte `Calc_safe.face` của EasyFace |
-| `native_mgr_193824672.face` | 193824672 | NativeMgr | `wf_native_manager` | bản packer r2 **chưa thử trên máy**; bản EasyFace trước r2 đã PASS (chủ thiết bị báo); preview PNG RGB |
+| `native_mgr_193824672.face` | 193824672 | NativeMgr | `wf_native_manager` | **PASS** – bản r2, chính tệp này (SHA-256 `d3a5818a…4dc523ebe`); bản EasyFace trước đó cũng PASS; preview PNG RGB |
 | `calc_dec_193824674.face` | 193824674 | Calc dec | `wf_native_calc_dec` | **PASS** – chính tệp này (SHA-256 `abcb50dc…7f127f8f`); số 17 ký tự bị khung hiển thị cắt chữ số cuối |
 
 cùng `SHA256SUMS` và `BUILD_INFO.txt` (commit nguồn, danh sách tệp, trạng thái phần cứng từng gói).
@@ -142,9 +142,7 @@ trên Smart Band 10 Pro Global `3.201.026`: cài được, mở được, CHECK 
 đúng tệp này (`hello_py_193824675.face`) từ nguồn hiện tại.
 
 Phạm vi của kết quả đó – **chưa** được chứng minh trên máy:
-- **Preview từ PNG RGB.** Trong gói, preview luôn là BGRA; PNG RGB thành alpha 255. Chưa có gói EasyFace nào từ preview RGB
-  để so, và chưa cài gói packer nào như vậy. `native_mgr` là gói duy nhất hiện dùng PNG RGB.
-- **Gói nhiều tệp.** Đã PASS: `Hello py` (2 tệp) và `Calc dec` (3 tệp: `main.lua`, ELF, PNG). `native_mgr` (6 tệp, 4 ELF) bản
-  packer chưa cài; bản EasyFace trước đó đã PASS.
+- **Preview từ PNG RGB:** đã PASS qua `native_mgr` r2 (PNG RGB → BGRA alpha 255). Chưa so với một gói EasyFace dựng từ PNG RGB.
+- **Gói nhiều tệp:** đã PASS `Hello py` (2 tệp), `Calc dec` (3 tệp), `native_mgr` r2 (6 tệp, 4 ELF). `calc_safe` bản packer chưa cài.
 - **Dạng project khác** (DeviceType khác 567, nhiều widget, ảnh/tài nguyên EasyFace khác, thư mục con…): packer từ chối, dùng EasyFace.
 - Firmware khác `3.201.026`: chưa thử.

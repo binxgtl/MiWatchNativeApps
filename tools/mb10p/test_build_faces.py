@@ -65,7 +65,7 @@ def main():
     check('SHA256SUMS matches and every package passes face_id.parse with its ID', ok)
     info = open(t + '/a/BUILD_INFO.txt').read() if rc == 0 else ''
     check('BUILD_INFO records the hardware status per target',
-          info.count('hardware: PASS 2026-10-23') == 2 and info.count('NOT hardware-tested') == 1 and 'RGB preview' in info)
+          info.count('hardware: PASS 2026-10-23') == 3 and 'NOT hardware-tested' not in info and 'packer output not installed' in info and 'RGB preview' in info)
     rc2, out2 = run('--out', t + '/b')
     same = rc2 == 0 and all(open(os.path.join(t, 'a', n), 'rb').read() == open(os.path.join(t, 'b', n), 'rb').read()
                             for n in names if n.endswith('.face'))
